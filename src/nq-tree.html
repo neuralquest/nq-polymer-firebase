@@ -1,0 +1,222 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-tree/paper-tree.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-tree">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+
+                display: block;
+            }
+
+        </style>
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
+        <!--<paper-tree data=[[test]]
+                    actions='[{
+                        "label": "Play",
+                        "event": "play"
+                    }]'>
+        </paper-tree>
+        new doc-->
+        <paper-tree data=[[doc]]
+                    actions='[{
+                        "label": "Play",
+                        "event": "play"
+                    }]'>
+        </paper-tree>
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'nq-tree',
+
+            properties: {
+                pageId: {
+                    type: String
+                },
+                level: {
+                    type: Number,
+                },
+                viewId: String,
+                doc:{
+                    type:Object,
+                    value: function() { return {name: 'Loading...'}; },
+                    //observer: 'dataChanged'
+                },
+                test: {
+                    value: function() {
+                        return {
+                            "name": "Owners",
+                            "icon": "folder",
+                            "open": true,
+                            "children": [{
+                                "name": "Users",
+                                "icon": "folder",
+                                "children": [{
+                                    "name": "platoscave",
+                                    "icon": "page"
+                                }, {
+                                    "name": "ACME User1",
+                                    "icon": "page"
+                                }, {
+                                    "name": "ACME User2",
+                                    "icon": "page"
+                                }]
+                            }, {
+                                "name": "Organizations",
+                                "icon": "folder",
+                                "children": [{
+                                    "name": "Neuralquest",
+                                    "icon": "page"
+                                }, {
+                                    "name": "ACME Bicycle Shop",
+                                    "icon": "page"
+                                }]
+                            }]};
+                    }
+                }
+
+            },
+            _pathToPageId: function(path){
+                var pathArr = path.split('.');
+                return pathArr[this.level*4];
+            },
+            computeDocId(level, route, view){
+                console.log('computeDocId');
+                if('rootQuery' in view && 'where' in view.rootQuery && 'value' in view.rootQuery.where ){
+                    return view.rootQuery.where.value;
+                }
+                var pathArr = route.path.split('.');
+                return pathArr[level*4];
+            },
+            ready: function(){
+                var self = this;
+                // Get the view for viewId that we received from widget
+                firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
+                    var view = snapshot.val();
+                    if(view === {}) return;
+                    //Get the root doc from the root query.
+                    self.getDocByQuery(view.rootQuery).then(function(snapshot2){
+                        var rootDoc = snapshot2.val();
+                        if(rootDoc === {}) return;
+                        if(!rootDoc) return;
+                        // Create the root object for the tree
+                        var result = {
+                            name: rootDoc.title?rootDoc.title:rootDoc.name,
+                            icon: rootDoc.icon?rootDoc.icon:view.rootQuery.icon,
+                            open: true
+                        };
+                        //Get the children from the query.
+                        self.getChildrenByQueryArr(view.query, snapshot2).then(function(children){
+                            var childrenArr = [];
+                            children.forEach(function(child){
+                                childrenArr.push({
+                                    name: child.title?child.title:child.name,
+                                    icon: child.icon?child.icon:view.query.icon,
+                                    open: false});
+                            });
+                            if(childrenArr.length > 0) result.children = childrenArr;
+                            //console.log('result ', result);
+                            self.doc = result;
+                        });
+                    });
+                });
+            },
+            getDocByQuery: function(query) {
+                if(!query) return {};
+                var self = this;
+                return self.getValueByDotNotation(query.where.value).then(function(docId) {
+                    // Get the root doc
+                    return firebase.database().ref('/documents/' + docId).once('value');
+                });
+            },
+            getChildrenByQueryArr: function(queryArr, parentSnapshot) {
+                if(!queryArr) return [];
+                var self = this;
+                var promisesArr = [];
+                queryArr.forEach(function(query){
+                    promisesArr.push(self.getDocArrayByQuery(query, parentSnapshot));
+                });
+                return Promise.all(promisesArr).then(function(resultsArr){
+                    var concatResults = [];
+                    resultsArr.forEach(function(objects){
+                        for(var key in objects){
+                            var obj = objects[key];
+                            concatResults.push(obj);
+                        }
+                    });
+                    return concatResults;
+                });
+            },
+            getDocArrayByQuery: function(query, parentSnapshot) {
+                var self = this;
+                //console.log('Tree query from', query.from, 'where', query.where );
+                if(!query) return [];
+                return self.getValueByDotNotation(query.where.value, parentSnapshot).then(function(docId) {
+                    var ref = firebase.database().ref("documents");
+                    return ref.orderByChild(query.where.docProp).equalTo(docId).once("value").then(function(snapshot2) {
+                        return snapshot2.val();
+                    });
+                });
+            },
+            getValueByDotNotation: function(path, parentSnapshot) {
+                var self = this;
+                var promiseOrDocId; //Maybe a promise or a string doc id
+                if(path == '$docId') {
+                    // Get the doc id from the path
+                    var pathArr = self.route.path.split('.');
+                    promiseOrDocId = pathArr[self.level * 4];
+                }
+                else if(path.startsWith('$parent')) {
+                    if(!parentSnapshot) return null;
+                    // subtract $parent.
+                    var remainingPath = path.substring(8);
+                    promiseOrDocId = self.applyDotNotationToObject(remainingPath, parentSnapshot);
+                }
+                else if(path.startsWith('$get')) {//TODO
+                    debugger;
+                    // Get the doc id from the path
+                    var pathArr = self.route.path.split('.');
+                    var docId = pathArr[self.level * 4];
+                    // Get the parent doc
+                    promiseOrDocId = firebase.database().ref('/documents/' + docId).once('value').then(function(snapshot) {
+                        var parentDoc = snapshot.val();
+                        // subtract $parent.
+                        var remainingPath = path.substring(8);
+                        return self.applyDotNotationToObject(remainingPath, parentDoc);
+                    });
+                }
+                else promiseOrDocId = path;
+                // Always return a promise
+                return Promise.resolve(promiseOrDocId);
+            },
+            applyDotNotationToObject: function(path, parentSnapshot) {
+                var current = parentSnapshot.val();
+                var _id = parentSnapshot.key;
+                var pathArr = path.split('.');
+                pathArr.forEach(function(part){
+                    if(part == '_id') current = _id;
+                    else current = current[part];
+                });
+                return current;
+            },
+            dataChanged: function(newValue, oldValue) {
+                console.log('view:', newValue);
+            }
+        });
+    </script>
+</dom-module>

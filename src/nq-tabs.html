@@ -1,0 +1,170 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+
+<link rel="import" href="../bower_components/app-layout/app-scrollpos-control/app-scrollpos-control.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="nq-widgets.html">
+<link rel="import" href="nq-layout.html">
+
+
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-tabs">
+    <template>
+        <style>
+            :host {
+                display: block;
+                height: 100%;
+                margin: 0;
+            }
+            paper-scroll-header-panel {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+            paper-tabs {
+                background-color : #3f51b5;
+                color: white;
+            }
+            .content {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                overflow-y: auto;
+            }
+        </style>
+
+        <!--<app-scrollpos-control selected="{{selected}}"></app-scrollpos-control>
+        <app-location route="{{route}}" use-hash-as-path></app-location>-->
+
+        <firebase-document
+                path="/documents/{{pageId}}/tabs"
+                data="{{tabs}}">
+        </firebase-document>
+
+        <template is="dom-if" if="{{hasMoreThanOne}}">
+            <!-- More than one tab, so draw tab bar-->
+            <paper-header-panel class="flex">
+                <paper-tabs class="paper-header" selected="{{selected}}">
+                    <template is="dom-repeat" items="{{tabs}}" as="tab">
+                        <paper-tab>[[tab.name]]</paper-tab>
+                    </template>
+                </paper-tabs>
+                <iron-pages selected="{{selected}}">
+                    <template is="dom-repeat" items="{{tabs}}" as="tab">
+                        <div>
+                            <!-- Tab content -->
+                            <template is="dom-if" if="{{_hasSubPage(tab)}}">
+                                <!-- This tab has a sub-page -->
+                                <nq-layout level="[[level]]" page-id="[[tab.pageId]]"></nq-layout>
+                            </template>
+                            <template is="dom-if" if="{{_notHasSubPage(tab)}}">
+                                <!-- This tab has widgets
+                                <p style="color:red">selected [[selected]]</p>
+                                <p style="color:red">level [[level]]</p>
+                                <p style="color:red">pagId [[pageId]]</p>
+                                <p style="color:red">tabName [[tab.name]]</p> -->
+
+                                <nq-widgets level="[[level]]" widgets="[[tab.widgets]]"></nq-widgets>
+
+                            </template>
+                        </div>
+                    </template>
+                </iron-pages>
+            </paper-header-panel>
+        </template>
+
+
+        <template is="dom-if" if="{{hasOne}}">
+            <!-- Only one tab, so no tab bar -->
+            <template is="dom-if" if="{{_hasSubPage(tabs.0)}}">
+                <!-- This tab has a sub-page -->
+                <nq-layout level="[[level]]" page-id="[[tabs.0.pageId]]"></nq-layout>
+            </template>
+            <template is="dom-if" if="{{_notHasSubPage(tabs.0)}}">
+                <!-- This tab has widgets
+                <p style="color:green">level [[level]]</p>
+                <p style="color:green">pageId [[pageId]]</p>
+                <p style="color:green">tabName [[tabs.0.name]]</p> -->
+
+                <nq-widgets level="[[level]]" widgets="[[tabs.0.widgets]]"></nq-widgets>
+
+            </template>
+        </template>
+    </template>
+
+
+    <script>
+        Polymer({
+
+            is: 'nq-tabs',
+
+            properties: {
+                pageId: {
+                    type: String
+                },
+                level: {
+                    type: Number
+                },
+                tabs: {
+                    type: Array,
+                    value: function() { return []; },
+                    observer: 'dataChanged'
+                },
+                selected:{
+                    type: Number,
+                    value: 0
+                },
+                hasMoreThanOne: {
+                    type: String,
+                    value: false,
+                    computed: '_hasMoreThanOne(tabs)'
+                    //observer: '_pageChanged'
+                }
+                ,
+                hasOne: {
+                    type: String,
+                    value: false,
+                    computed: '_hasOne(tabs)'
+                    //observer: '_pageChanged'
+                }
+            },
+            _hasMoreThanOne: function(tabs) {
+                if(tabs.length==0) return false;
+                console.log('_hasMoreThanOne:');
+                return tabs.length>1;
+            },
+            _hasOne: function(tabs) {
+                if(tabs.length==0) return false;
+                console.log('_hasOne:');
+                return tabs.length==1;
+            },
+            _hasSubPage: function(tab) {
+                //console.log('_hasSubPage:', tab.name, tab.pageId);
+                return tab.pageId?true:false;
+            },
+            _notHasSubPage: function(tab) {
+                console.log('_notHasSubPage:', tab.name, tab.pageId, tab.pageId?false:true);
+                return tab.pageId?false:true;
+            },
+
+
+            ready: function () {
+                console.log('ready level', this.level, 'pageId:', this.pageId);
+                //console.log('tabs', this.tabs);
+            },
+            dataChanged: function(newValue, oldValue) {
+                //console.log('tabs level', this.level, 'to:', newValue);
+            }
+        });
+    </script>
+</dom-module>

@@ -1,0 +1,96 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-form">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+
+                display: block;
+            }
+
+        </style>
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
+        <firebase-document
+                path="/documents/[[docIdComputed]]"
+                data="{{doc}}">
+        </firebase-document>
+
+
+        <firebase-document
+                path="/documents/{{viewId}}"
+                data="{{view}}">
+        </firebase-document>
+
+        <!-- Only one tab, so no tab bar -->
+        <template is="dom-repeat" items="{{_toArray(view.properties)}}" as="prop">
+            <div>{{prop.name}}</div>
+        </template>
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'nq-form',
+
+            properties: {
+                pageId: {
+                    type: String
+                },
+                level: {
+                    type: Number,
+                },
+                viewId: String,
+                docIdComputed: {
+                    type: String,
+                    computed: 'computeDocId(level, route)'
+                },
+                view:{
+                    type:Object,
+                    value: function() { return {}; },
+                    //observer: 'dataChanged'
+                },
+                doc:{
+                    type:Object,
+                    value: function() { return {}; },
+                    observer: 'dataChanged'
+                }
+
+            },
+            _pathToPageId: function(path){
+                var pathArr = path.split('.');
+                return pathArr[this.level*4];
+            },
+            computeDocId(level, route){
+                //console.log('computeDocId');
+                var pathArr = route.path.split('.');
+                return pathArr[level*4];
+            },
+            _toArray: function(obj) {
+                if(!obj) return [];
+                var arr =  Object.keys(obj).map(function(key) {
+                    return {
+                        name: key,
+                        value: obj[key]
+                    };
+                });
+                return arr;
+            },
+            dataChanged: function(newValue, oldValue) {
+                console.log('view:', newValue);
+            },
+        });
+    </script>
+</dom-module>

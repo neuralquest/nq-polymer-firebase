@@ -1,0 +1,83 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/io-object/io-object.html">
+<link rel="import" href="../bower_components/three-viewport/three-viewport.html">
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-3d-class-model">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+
+                display: block;
+            }
+        </style>
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
+        <firebase-document
+                path="/documents/{{_pathToDocId(route.path, level)}}"
+                data="{{doc}}">
+        </firebase-document>
+
+        <three-viewport
+                id="viewport1"
+                clear-color="#000000"
+                width="500"
+                height="500"
+                show-helpers
+                show-grid
+                show-axis
+                show-compass
+                scene="{{scene}}">
+        </three-viewport>
+        <io-object id="inspector1"
+                   expanded
+                   on-io-value-set="_valueSet">
+        </io-object>
+
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'nq-3d-class-model',
+
+            properties: {
+                level: Number,
+                viewId: String,
+                doc:{
+                    type:Object,
+                    value: function() { return {}; },
+                    //observer: 'dataChanged'
+                }
+
+            },
+            _pathToDocId: function(path, level){
+                var pathArr = path.split('.');
+                //return pathArr[4];
+                return pathArr[level*4];
+            },
+            dataChanged: function(newValue, oldValue) {
+                console.log('nq-home doc from:', oldValue, 'to:', newValue);
+            },
+            ready: function(){
+                var geometry = new THREE.BoxGeometry( 20, 20, 20 );
+                var material = new THREE.MeshNormalMaterial();
+
+                var mesh = new THREE.Mesh( geometry, material );
+                this.$.viewport1.scene.add( mesh );
+
+                this.$.inspector1.value = this.$.viewport1;
+            }
+        });
+    </script>
+</dom-module>

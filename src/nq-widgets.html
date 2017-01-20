@@ -1,0 +1,102 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="nq-tree.html">
+<link rel="import" href="nq-home.html">
+<link rel="import" href="nq-form.html">
+<link rel="import" href="nq-3d-class-model.html">
+
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-widgets">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+
+                display: block;
+                margin: 0;
+                height: 200px;
+
+                background-image: linear-gradient(#CDDDE9, white);
+                background-height: 20em;
+                background-repeat-y: no-repeat;
+            }
+        </style>
+
+        <template is="dom-repeat" items="[[widgets]]" as="widget">
+
+            <!-- Draw widget-->
+            <template is="dom-if" if="[[_typeDocument(widget.displayType)]]">
+                <div>Widget [[widget.displayType]]</div>
+            </template>
+            <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
+                <!--<nq-tree level="[[level]]" view-id="[[widget.viewId]]"></nq-tree>-->
+                <div>Widget [[widget.displayType]]</div>
+            </template>
+            <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
+                <div>Widget [[widget.displayType]]</div>
+            </template>
+            <template is="dom-if" if="[[_type3dClassModel(widget.displayType)]]">
+                <nq-3d-class-model level="[[level]]" view-id="[[widget.viewId]]"></nq-3d-class-model>
+            </template>
+            <template is="dom-if" if="[[_typeProcessModel(widget.displayType)]]">
+                <div>Widget [[widget.displayType]]</div>
+            </template>
+            <template is="dom-if" if="[[_typeForm(widget.displayType)]]">
+                <nq-form level="[[level]]" view-id="[[widget.viewId]]"></nq-form>
+            </template>
+            <template is="dom-if" if="[[_typeHomePage(widget.displayType)]]">
+                <nq-home level="[[level]]" view-id="[[widget.viewId]]"></nq-home>
+            </template>
+
+        </template>
+
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'nq-widgets',
+
+            properties: {
+                level: Number,
+                widgets: {
+                    type: Array,
+                    value: function() { return []; },
+                    //observer: 'dataChanged'
+                }
+            },
+
+            _typeDocument: function(displayType) {
+                return displayType==='Document';
+            },
+            _typeTree: function(displayType) {
+                return displayType==='Tree';
+            },
+            _typeTable: function(displayType) {
+                return displayType==='Table';
+            },
+            _type3dClassModel: function(displayType) {
+                return displayType==='3D Class Model';
+            },
+            _typeProcessModel: function(displayType) {
+                return displayType==='Process Model';
+            },
+            _typeForm: function(displayType) {
+                return displayType==='Form';
+            },
+            _typeHomePage: function(displayType) {
+                return displayType==='HomePage';
+            },
+
+            ready: function () {
+                //console.log('ready widget: ', this.widget);
+            }
+        });
+    </script>
+</dom-module>

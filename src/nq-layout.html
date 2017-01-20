@@ -1,0 +1,176 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="nq-tabs.html">
+
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-layout">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+
+                display: block;
+                height: 100%;
+                margin: 0;
+            }
+
+            app-header {
+                color: #fff;
+                background-color: var(--app-primary-color);
+            }
+            app-header paper-icon-button {
+                --paper-icon-button-ink-color: white;
+            }
+            .content {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                overflow-y: auto;
+            }
+
+        </style>
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
+        <firebase-document
+            path="/documents/{{pageId}}"
+            data="{{page}}">
+        </firebase-document>
+
+        <template is="dom-if" if="{{_hasDivider(page)}}">
+            <paper-drawer-panel class="flex">
+                <!-- Drawer content -->
+                <nq-tabs drawer level="[[level]]" page-id="[[pageId]]"></nq-tabs>
+                <!-- Main content-->
+                <nq-tabs main class="fit" level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
+            </paper-drawer-panel>
+        </template>
+
+        <!-- Only header layout content -->
+        <template is="dom-if" if="{{_noDivider(page)}}">
+            <nq-tabs level="[[level]]" page-id="[[pageId]]"></nq-tabs>
+        </template>
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'nq-layout',
+
+            properties: {
+                pageId: {
+                    type: String
+                },
+                level: {
+                    type: Number,
+                },
+                levelInc: {
+                    type: Number,
+                    computed: 'computeLevelInc(level)'
+                },
+                pageIdInc: {
+                    type: String,
+                    value: null,
+                    computed: 'computePageIdInc(level, route)'
+                    //observer: '_pageChanged'
+                },
+                page: {
+                    type: Array,
+                    value: function() { return []; },
+                    //observer: 'dataChanged'
+                }
+            },
+
+            computeLevelInc(level){
+                return level+1;
+            },
+            computePageIdInc(level, route){
+                //console.log('computePageIdInc');
+                var pathArr = route.path.split('.');
+                var idx = (level+1)*4+1;
+                return pathArr[idx];
+            },
+
+            _pathToPageId: function(path,level){
+                if(this.pageId) return this.pageId;
+                var pathArr = path.split('.');
+                return pathArr[level*4+1];
+            },
+            _pathToPageIdInc: function(path,level){
+                var pathArr = path.split('.');
+                console.log('_pathToPageIdInc:', pathArr[(level+1)*4+1]);
+                return pathArr[(level+1)*4+1];
+            },
+
+            _hasDivider: function(page) {
+                if(page.length==0) return false;
+                console.log('_hasDivider:');
+                return page.divider === 'Vertical';
+            },
+            _noDivider: function(page) {
+                if(page.length==0) return false;
+                console.log('_noDivider:');
+                return page.divider != 'Vertical';
+            },
+
+            _levelChanged: function(newValue, oldValue) {
+                console.log('level from:', oldValue, 'to:', newValue);
+            },
+            ready: function () {
+                console.log('ready level', this.level, 'pageId:', this.pageId);
+                //console.log('ready level', this.level, 'pageId', this.pageId, 'pageIdInc', this.pageIdInc);
+            },
+            dataChanged: function(newValue, oldValue) {
+                console.log('page from:', oldValue, 'to:', newValue);
+            },
+            /*properties: {
+                pageId: String
+            },
+            dataChanged: function (newData, oldData) {
+                // do something when the query returns values
+                debugger;
+            },
+            observers: [
+                '_routePageChanged(route.path)',
+            ],
+
+            _routePageChanged: function(path) {
+                console.log('page change', path)
+            },
+
+            _pageChanged: function(page) {
+                // Load page import on demand. Show 404 page if fails
+                var resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
+                this.importHref(resolvedPageUrl, null, this._showPage404, true);
+            },
+
+            _showPage404: function() {
+                this.page = 'view404';
+            },
+            _getState: function(location, level){
+                var hashArr = location.split('.');
+                return {
+                    pageIdPreviousLevel: hashArr[level*4-3],
+                    tabNumPreviousLevel: parseInt(hashArr[level*4-2])?parseInt(hashArr[level*4-2]):0,
+                    widgetNumPreviousLevel: parseInt(hashArr[level*4-1])?parseInt(hashArr[level*4-1]):0,
+                    docIdPreviousLevel: hashArr[level*4],
+                    pageId: hashArr[level*4+1],
+                    tabNum: parseInt(hashArr[level*4+2])?parseInt(hashArr[level*4+2]):0,
+                    widgetNum: parseInt(hashArr[level*4+3])?parseInt(hashArr[level*4+3]):0,
+                    docId: hashArr[level*4+4]
+                };
+            },*/
+        });
+    </script>
+</dom-module>

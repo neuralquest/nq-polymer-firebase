@@ -1,0 +1,96 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill-html-render.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-home">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+
+                display: block;
+            }
+            paper-fab {
+                margin-left: 10px;
+                margin-right: 10px;
+                margin-bottom: 70px;
+                position: fixed;
+                right: 25px;
+                bottom: 25px;
+            }
+            paper-toolbar paper-tabs {
+                flex: 1;
+            }
+            .backgroundClass {
+                --polymer-quill-html-background-color: transparent;
+            }
+            .headline{position:absolute; top:30%; width:100%;text-align:center;font-size:40px;font-weight:bold;color:white;text-shadow: 2px 2px 4px black}
+            .columns {
+                -webkit-column-width: 300px; /* Chrome, Safari, Opera */
+                -moz-column-width: 300px; /* Firefox */
+                column-width: 300px;
+                max-width:800px;
+            }
+        </style>
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
+        <firebase-document
+                path="/documents/{{_pathToDocId(route.path, level)}}"
+                data="{{doc}}">
+        </firebase-document>
+
+        <polymer-quill-html-render class="backgroundClass id="quilDoc" content="{{doc.description}}">
+        </polymer-quill-html-render>
+
+        <paper-fab hidden={{editing}}  icon="icons:edit" on-tap="doEdit" mini></paper-fab>
+        <paper-fab hidden={{!editing}} icon="icons:done"   on-tap="doEdit" mini></paper-fab>
+
+    </template>
+
+    <script>
+        Polymer({
+
+            is: 'nq-home',
+
+            properties: {
+                level: Number,
+                viewId: String,
+                doc:{
+                    type:Object,
+                    value: function() { return {}; },
+                    //observer: 'dataChanged'
+                },
+                editing: {
+                    type: Boolean,
+                    value: false
+                }
+
+            },
+            doEdit: function(e){
+                this.editing=!this.editing;
+            },
+            _pathToDocId: function(path, level){
+                var pathArr = path.split('.');
+                //return pathArr[4];
+                return pathArr[level*4];
+            },
+            dataChanged: function(newValue, oldValue) {
+                console.log('nq-home doc from:', oldValue, 'to:', newValue);
+            },
+            ready: function(){
+                //console.log('nq-home ready level: ', this.level, 'viewId', this.viewId);
+            }
+        });
+    </script>
+</dom-module>
