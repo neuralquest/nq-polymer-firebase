@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-tree/paper-tree.html">
-<link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 
 <!--
@@ -21,8 +20,6 @@ yes
             }
 
         </style>
-
-        <app-location route="{{route}}" use-hash-as-path></app-location>
 
         <!--<paper-tree data=[[test]]
                     actions='[{
@@ -45,13 +42,17 @@ yes
             is: 'nq-tree',
 
             properties: {
+                level: Number,
+                viewId: String,
+                docId: String,
+                schema:{
+                    type:Object,
+                    value: function() { return {}; },
+                    //observer: 'dataChanged'
+                },
                 pageId: {
                     type: String
                 },
-                level: {
-                    type: Number,
-                },
-                viewId: String,
                 doc:{
                     type:Object,
                     value: function() { return {name: 'Loading...'}; },
@@ -90,10 +91,6 @@ yes
                     }
                 }
 
-            },
-            _pathToPageId: function(path){
-                var pathArr = path.split('.');
-                return pathArr[this.level*4];
             },
             computeDocId(level, route, view){
                 console.log('computeDocId');

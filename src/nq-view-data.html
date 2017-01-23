@@ -1,0 +1,99 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+
+<!--
+`view-data`
+view data
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-view-data">
+    <script>
+        Polymer({
+
+            is: 'nq-view-data',
+
+            properties: {
+                viewId: String
+            },
+            ready: function() {
+                var self = this;
+                var database = firebase.database();
+                //return;
+                // Get the view for viewId that we received from widget
+                database.ref('/documents/' + self.viewId).on('value', function (snapshot) {
+                    var viewDoc = snapshot.val();
+                    if(viewDoc === null) return;
+                    var inheritedClassSchemaPromise = {};
+                    if('rootQuery' in viewDoc && 'from' in viewDoc.rootQuery && viewDoc.rootQuery.from != 'classes') {
+                        inheritedClassSchemaPromise = self.getInheritedClassSchema(viewDoc.rootQuery.from);
+                    }//TODO we have to rethink this. what do we do if we have more than one query in the array
+                    else if('query' in viewDoc && 'from' in viewDoc.query[0] && viewDoc.query[0].from != 'classes') {
+                        inheritedClassSchemaPromise = self.getInheritedClassSchema(viewDoc.query[0].from);
+                    }
+                    return inheritedClassSchemaPromise.then(function(inheritedClassSchema){
+                        //var properties = viewObj.properties;
+                        var inheritedClassProperties = inheritedClassSchema.properties;
+                        if(viewDoc.query && 'subDoc' in viewDoc.query){
+                            var subDocName = viewDoc.query.subDoc;
+                            var subDocItems = inheritedClassSchema.properties[subDocName];
+                            inheritedClassProperties = subDocItems.items.properties;
+                        }
+                        var schema = lang.clone(viewDoc);
+                        schema.properties = self.mergeProperties(viewObj.properties, inheritedClassSchema.properties);
+                        schema.required = [];
+
+                        schema.required = schema.required.concat(schema.required, inheritedClassSchema.required);
+                        //console.log('SCHEMA');
+                        //console.dir(schema);
+                        return schema;
+                    });
+                });
+            },
+            getInheritedClassSchema: function(id){
+                var promise = this.getAncestors(id);
+                return promise.then(function(snapshot){
+                    var ancestorsArr = snapshot.val();
+                    var inheritedClassSchema = {
+                        $schema: "http://json-schema.org/draft-04/schema#",
+                        properties:{},
+                        required:[],
+                        additionalProperties: false
+                    };
+                    for(var i = ancestorsArr.length-1; i>=0; i--){
+                        var ancestor = ancestorsArr[i];
+                        //combine the the two class.properties, there should be no overlap. If there is, the parent is leading
+                        //we have to clone otherwise we start messing with the real class
+                        lang.mixin(inheritedClassSchema.properties, lang.clone(ancestor.properties));
+                        //merge.recursive(inheritedClassSchema.properties, ancestor.properties);
+                        //combine the to class.required arrays. There should be no overlap
+                        if(ancestor.required) inheritedClassSchema.required = inheritedClassSchema.required.concat(ancestor.required);
+
+                    };
+                    /*ancestorsArr.forEach(function(ancestor){
+                     //combine the the two class.properties, there should be no overlap. If there is, the parent is leading
+                     //we have to clone otherwise we start messing with the real class
+                     lang.mixin(inheritedClassSchema.properties, lang.clone(ancestor.properties));
+                     //merge.recursive(inheritedClassSchema.properties, ancestor.properties);
+                     //combine the to class.required arrays. There should be no overlap
+                     if(ancestor.required) inheritedClassSchema.required = inheritedClassSchema.required.concat(ancestor.required);
+                     });*/
+                    return inheritedClassSchema;
+                });
+            },
+            getAncestors: function(id) {
+                var self = this;
+                var database = firebase.database();
+                return database.ref('/documents/' + id).once('value', function(snapshot){
+                    var classObj = snapshot.val();
+                    if(classObj.parentId) return self.getAncestors(classObj.parentId).then(function(ancestorsArr){
+                        ancestorsArr.unshift(classObj);//add to the beginning
+                        return ancestorsArr;
+                    });
+                    else return [classObj];//no parent, we are at the root
+                });
+            }
+        });
+    </script>
+</dom-module>

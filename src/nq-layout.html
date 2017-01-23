@@ -96,7 +96,7 @@ yes
                 return level+1;
             },
             computePageIdInc(level, route){
-                //console.log('computePageIdInc');
+                console.log('computePageIdInc');
                 var pathArr = route.path.split('.');
                 var idx = (level+1)*4+1;
                 return pathArr[idx];
@@ -109,26 +109,26 @@ yes
             },
             _pathToPageIdInc: function(path,level){
                 var pathArr = path.split('.');
-                console.log('_pathToPageIdInc:', pathArr[(level+1)*4+1]);
+                //console.log('_pathToPageIdInc:', pathArr[(level+1)*4+1]);
                 return pathArr[(level+1)*4+1];
             },
 
             _hasDivider: function(page) {
                 if(page.length==0) return false;
-                console.log('_hasDivider:');
+                //console.log('_hasDivider:');
                 return page.divider === 'Vertical';
             },
             _noDivider: function(page) {
                 if(page.length==0) return false;
-                console.log('_noDivider:');
+                //console.log('_noDivider:');
                 return page.divider != 'Vertical';
             },
 
             _levelChanged: function(newValue, oldValue) {
-                console.log('level from:', oldValue, 'to:', newValue);
+                //console.log('level from:', oldValue, 'to:', newValue);
             },
             ready: function () {
-                console.log('ready level', this.level, 'pageId:', this.pageId);
+                //console.log('ready level', this.level, 'pageId:', this.pageId);
                 //console.log('ready level', this.level, 'pageId', this.pageId, 'pageIdInc', this.pageIdInc);
             },
             dataChanged: function(newValue, oldValue) {

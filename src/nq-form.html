@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="nq-view-data.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 
 <!--
@@ -21,9 +21,9 @@ yes
 
         </style>
 
-        <app-location route="{{route}}" use-hash-as-path></app-location>
+        <nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>
 
-        <firebase-document
+        <!--<firebase-document
                 path="/documents/[[docIdComputed]]"
                 data="{{doc}}">
         </firebase-document>
@@ -32,10 +32,10 @@ yes
         <firebase-document
                 path="/documents/{{viewId}}"
                 data="{{view}}">
-        </firebase-document>
+        </firebase-document>-->
 
         <!-- Only one tab, so no tab bar -->
-        <template is="dom-repeat" items="{{_toArray(view.properties)}}" as="prop">
+        <template is="dom-repeat" items="{{viewDoc.properties)}}" as="prop">
             <div>{{prop.name}}</div>
         </template>
     </template>
@@ -46,37 +46,14 @@ yes
             is: 'nq-form',
 
             properties: {
-                pageId: {
-                    type: String
-                },
-                level: {
-                    type: Number,
-                },
+                level: Number,
                 viewId: String,
-                docIdComputed: {
-                    type: String,
-                    computed: 'computeDocId(level, route)'
-                },
-                view:{
+                docId: String,
+                viewDoc:{
                     type:Object,
                     value: function() { return {}; },
                     //observer: 'dataChanged'
-                },
-                doc:{
-                    type:Object,
-                    value: function() { return {}; },
-                    observer: 'dataChanged'
                 }
-
-            },
-            _pathToPageId: function(path){
-                var pathArr = path.split('.');
-                return pathArr[this.level*4];
-            },
-            computeDocId(level, route){
-                //console.log('computeDocId');
-                var pathArr = route.path.split('.');
-                return pathArr[level*4];
             },
             _toArray: function(obj) {
                 if(!obj) return [];
@@ -90,7 +67,7 @@ yes
             },
             dataChanged: function(newValue, oldValue) {
                 console.log('view:', newValue);
-            },
+            }
         });
     </script>
 </dom-module>

@@ -43,8 +43,8 @@ yes
             }
         </style>
 
-        <!--<app-scrollpos-control selected="{{selected}}"></app-scrollpos-control>
-        <app-location route="{{route}}" use-hash-as-path></app-location>-->
+        <!--<app-scrollpos-control selected="{{selected}}"></app-scrollpos-control>-->
+        <app-location route="{{route}}" use-hash-as-path></app-location>
 
         <firebase-document
                 path="/documents/{{pageId}}/tabs"
@@ -118,11 +118,12 @@ yes
                 tabs: {
                     type: Array,
                     value: function() { return []; },
-                    observer: 'dataChanged'
+                    //observer: 'dataChanged'
                 },
                 selected:{
                     type: Number,
-                    value: 0
+                    value: 0,
+                    observer: '_updateRoute'
                 },
                 hasMoreThanOne: {
                     type: String,
@@ -155,6 +156,15 @@ yes
             _notHasSubPage: function(tab) {
                 console.log('_notHasSubPage:', tab.name, tab.pageId, tab.pageId?false:true);
                 return tab.pageId?false:true;
+            },
+            _updateRoute: function(newValue, oldValue) {
+                if(!this.route) return;
+                console.log('_updatedRoute:', oldValue, newValue);
+                var pathArr = this.route.path.split('.');
+                var idx = (this.level)*4+2;
+                pathArr[idx] = newValue;
+                var newPath = pathArr.join('.');
+                this.set('route.path', newPath);
             },
 
 
