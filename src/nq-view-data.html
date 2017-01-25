@@ -15,84 +15,86 @@ view data
             is: 'nq-view-data',
 
             properties: {
-                viewId: String
+                viewId: String,
+                viewDoc: {
+                    type: Object,
+                    value: function() { return {}; },
+                    notify: true
+                }
             },
             ready: function() {
                 var self = this;
                 var database = firebase.database();
                 //return;
                 // Get the view for viewId that we received from widget
-                database.ref('/documents/' + self.viewId).on('value', function (snapshot) {
+                database.ref('/documents/' + self.viewId).once('value').then(function (snapshot) {
                     var viewDoc = snapshot.val();
                     if(viewDoc === null) return;
-                    var inheritedClassSchemaPromise = {};
-                    if('rootQuery' in viewDoc && 'from' in viewDoc.rootQuery && viewDoc.rootQuery.from != 'classes') {
-                        inheritedClassSchemaPromise = self.getInheritedClassSchema(viewDoc.rootQuery.from);
-                    }//TODO we have to rethink this. what do we do if we have more than one query in the array
-                    else if('query' in viewDoc && 'from' in viewDoc.query[0] && viewDoc.query[0].from != 'classes') {
-                        inheritedClassSchemaPromise = self.getInheritedClassSchema(viewDoc.query[0].from);
+                    var classId;
+                    if('rootQuery' in viewDoc && 'from' in viewDoc.rootQuery) {
+                        classId = viewDoc.rootQuery.from;
                     }
-                    return inheritedClassSchemaPromise.then(function(inheritedClassSchema){
-                        //var properties = viewObj.properties;
-                        var inheritedClassProperties = inheritedClassSchema.properties;
-                        if(viewDoc.query && 'subDoc' in viewDoc.query){
-                            var subDocName = viewDoc.query.subDoc;
-                            var subDocItems = inheritedClassSchema.properties[subDocName];
-                            inheritedClassProperties = subDocItems.items.properties;
+                    else if('query' in viewDoc && 'from' in viewDoc.query[0]) {
+                        //TODO we have to rethink this. what do we do if we have more than one query in the array
+                        classId = viewDoc.query[0].from;
+                    }
+                    return self.getInheritedClassSchema(classId).then(function(inheritedClassSchema){
+                        for(var key in viewDoc.properties){
+                            if(inheritedClassSchema.properties && inheritedClassSchema.properties[key])
+                                self.mergeDeep(viewDoc.properties[key], inheritedClassSchema.properties[key]);
                         }
-                        var schema = lang.clone(viewDoc);
-                        schema.properties = self.mergeProperties(viewObj.properties, inheritedClassSchema.properties);
-                        schema.required = [];
-
-                        schema.required = schema.required.concat(schema.required, inheritedClassSchema.required);
-                        //console.log('SCHEMA');
-                        //console.dir(schema);
-                        return schema;
+                        self.viewDoc = viewDoc;
                     });
                 });
             },
             getInheritedClassSchema: function(id){
-                var promise = this.getAncestors(id);
-                return promise.then(function(snapshot){
-                    var ancestorsArr = snapshot.val();
-                    var inheritedClassSchema = {
-                        $schema: "http://json-schema.org/draft-04/schema#",
-                        properties:{},
-                        required:[],
-                        additionalProperties: false
-                    };
-                    for(var i = ancestorsArr.length-1; i>=0; i--){
-                        var ancestor = ancestorsArr[i];
-                        //combine the the two class.properties, there should be no overlap. If there is, the parent is leading
-                        //we have to clone otherwise we start messing with the real class
-                        lang.mixin(inheritedClassSchema.properties, lang.clone(ancestor.properties));
-                        //merge.recursive(inheritedClassSchema.properties, ancestor.properties);
-                        //combine the to class.required arrays. There should be no overlap
-                        if(ancestor.required) inheritedClassSchema.required = inheritedClassSchema.required.concat(ancestor.required);
-
-                    };
-                    /*ancestorsArr.forEach(function(ancestor){
-                     //combine the the two class.properties, there should be no overlap. If there is, the parent is leading
-                     //we have to clone otherwise we start messing with the real class
-                     lang.mixin(inheritedClassSchema.properties, lang.clone(ancestor.properties));
-                     //merge.recursive(inheritedClassSchema.properties, ancestor.properties);
-                     //combine the to class.required arrays. There should be no overlap
-                     if(ancestor.required) inheritedClassSchema.required = inheritedClassSchema.required.concat(ancestor.required);
-                     });*/
+                var self = this;
+                var inheritedClassSchema = {};
+                if(!id || id == 'classes'){
+                    return Promise.resolve(inheritedClassSchema); //return a promise
+                }
+                return this.getAncestors(id).then(function(ancestorsArr){
+                    ancestorsArr.forEach(function(ancestor){
+                        self.mergeDeep(inheritedClassSchema, ancestor);
+                    });
                     return inheritedClassSchema;
                 });
             },
             getAncestors: function(id) {
                 var self = this;
                 var database = firebase.database();
-                return database.ref('/documents/' + id).once('value', function(snapshot){
+                return database.ref('/documents/' + id).once('value').then(function(snapshot){
                     var classObj = snapshot.val();
-                    if(classObj.parentId) return self.getAncestors(classObj.parentId).then(function(ancestorsArr){
-                        ancestorsArr.unshift(classObj);//add to the beginning
-                        return ancestorsArr;
-                    });
-                    else return [classObj];//no parent, we are at the root
+                    if(classObj.parentId) {
+                        var ancestorsPromise = self.getAncestors(classObj.parentId);
+                        return ancestorsPromise.then(function(ancestorsArr){
+                            ancestorsArr.push(classObj);
+                            return ancestorsArr;
+                        });
+                    }
+                    //no parent, we are at the root
+                    else {
+                        var ancestorArr = [classObj];
+                        return Promise.resolve(ancestorArr);//return a promise
+                    }
                 });
+            },
+            mergeDeep: function(target, source) {
+                var self = this;
+                if (self.isObject(target) && self.isObject(source)) {
+                    for (const key in source) {
+                        if (self.isObject(source[key])) {
+                            if (!target[key]) Object.assign(target, { [key]: {} });
+                            self.mergeDeep(target[key], source[key]);
+                        } else {
+                            Object.assign(target, { [key]: source[key] });
+                        }
+                    }
+                }
+                return target;
+            },
+            isObject: function (item) {
+                return (item && typeof item === 'object' && !Array.isArray(item) && item !== null);
             }
         });
     </script>

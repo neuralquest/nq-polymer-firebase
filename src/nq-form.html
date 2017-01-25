@@ -23,21 +23,26 @@ yes
 
         <nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>
 
-        <!--<firebase-document
-                path="/documents/[[docIdComputed]]"
+        <firebase-document
+                path="/documents/[[docId]]"
                 data="{{doc}}">
         </firebase-document>
 
 
-        <firebase-document
+        <!--<firebase-document
                 path="/documents/{{viewId}}"
                 data="{{view}}">
         </firebase-document>-->
 
         <!-- Only one tab, so no tab bar -->
-        <template is="dom-repeat" items="{{viewDoc.properties)}}" as="prop">
-            <div>{{prop.name}}</div>
+        <table>
+        <template is="dom-repeat" doc={{doc}} items="{{viewPropArr}}" as="property">
+            <tr>
+                <td>{{property.prop.title}}</td>
+                <td>{{property.value}}</td>
+            </tr>
         </template>
+        </table>
     </template>
 
     <script>
@@ -52,21 +57,29 @@ yes
                 viewDoc:{
                     type:Object,
                     value: function() { return {}; },
+                    observer: 'dataChanged'
+                },
+                viewPropArr:{
+                    type: Array,
+                    value: function() { return []; },
+                    computed: '_toArray(viewDoc, doc)',
                     //observer: 'dataChanged'
                 }
             },
-            _toArray: function(obj) {
-                if(!obj) return [];
+            _toArray: function(viewDoc, doc) {
+                if(!viewDoc.properties) return [];
+                var obj = viewDoc.properties;
                 var arr =  Object.keys(obj).map(function(key) {
                     return {
                         name: key,
-                        value: obj[key]
+                        prop: obj[key],
+                        value: doc[key]
                     };
                 });
                 return arr;
             },
             dataChanged: function(newValue, oldValue) {
-                console.log('view:', newValue);
+                console.log('viewDoc:', oldValue, 'to', newValue);
             }
         });
     </script>
