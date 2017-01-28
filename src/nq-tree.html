@@ -87,22 +87,15 @@ yes
                                     "name": "ACME Bicycle Shop",
                                     "icon": "page"
                                 }]
-                            }]};
+                            }]
+                        };
                     }
                 }
-
-            },
-            computeDocId(level, route, view){
-                console.log('computeDocId');
-                if('rootQuery' in view && 'where' in view.rootQuery && 'value' in view.rootQuery.where ){
-                    return view.rootQuery.where.value;
-                }
-                var pathArr = route.path.split('.');
-                return pathArr[level*4];
             },
             ready: function(){
                 var self = this;
                 // Get the view for viewId that we received from widget
+                //TODO replace with nq-view-data ?
                 firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
                     var view = snapshot.val();
                     if(view === {}) return;
@@ -174,9 +167,10 @@ yes
                 var self = this;
                 var promiseOrDocId; //Maybe a promise or a string doc id
                 if(path == '$docId') {
+                    promiseOrDocId = this.docId;
                     // Get the doc id from the path
-                    var pathArr = self.route.path.split('.');
-                    promiseOrDocId = pathArr[self.level * 4];
+                    //var pathArr = self.route.path.split('.');
+                    //promiseOrDocId = pathArr[self.level * 4];
                 }
                 else if(path.startsWith('$parent')) {
                     if(!parentSnapshot) return null;

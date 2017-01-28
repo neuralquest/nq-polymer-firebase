@@ -1,6 +1,13 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="nq-view-data.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill-html-render.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 
 <!--
 `my-blank-element`
@@ -17,6 +24,22 @@ yes
                 --app-secondary-color: black;
 
                 display: block;
+                margin: 5px;
+            }
+            paper-fab {
+                margin-left: 10px;
+                margin-right: 10px;
+                margin-bottom: 70px;
+                position: fixed;
+                right: 25px;
+                bottom: 25px;
+            }
+            .backgroundClass {
+                --polymer-quill-html-background-color: transparent;
+            }
+            polymer-quill.full {
+                --polymer-quill-editor-max-height: 600px;
+                --polymer-quill-editor-min-height: 200px;
             }
 
         </style>
@@ -28,21 +51,93 @@ yes
                 data="{{doc}}">
         </firebase-document>
 
-
-        <!--<firebase-document
-                path="/documents/{{viewId}}"
-                data="{{view}}">
-        </firebase-document>-->
-
-        <!-- Only one tab, so no tab bar -->
-        <table>
         <template is="dom-repeat" doc={{doc}} items="{{viewPropArr}}" as="property">
-            <tr>
-                <td>{{property.prop.title}}</td>
-                <td>{{property.value}}</td>
-            </tr>
+            <div>
+            <!-- Input -->
+            <template is="dom-if" if="[[_typeStringHtml(property.attrProps)]]">
+                <template is="dom-if" if="[[readOnly]]">
+                    <polymer-quill-html-render
+                            id="quilDoc"
+                            class="backgroundClass"
+                            content="[[property.value]]">
+                    </polymer-quill-html-render>
+                </template>
+                <template is="dom-if" if="[[!readOnly]]">
+                    <!-- https://github.com/quilljs/quill/issues/904 -->
+                    <!--<polymer-quill
+                            id="quilEditDoc"
+                            class="full"
+                            store-as="html"
+                            toolbar-type="full"
+                            show-html
+                            show-results
+                            content="<h1>hi</h1>">
+                    </polymer-quill>-->
+                </template>
+            </template>
+            <template is="dom-if" if="[[_typeStringBase64(property.attrProps)]]">
+                <img src="{{property.value}}"
+                     width="16px"
+                     height="16px">
+            </template>
+            <template is="dom-if" if="[[_typeStringWebGL(property.attrProps)]]">
+                <div>{{property.value}}</div>
+            </template>
+            <template is="dom-if" if="[[_typeStringDate(property.attrProps)]]">
+                <div>{{property.value}}</div>
+            </template>
+            <template is="dom-if" if="[[_typeStringUri(property.attrProps)]]">
+                <div>{{property.value}}</div>
+            </template>
+            <template is="dom-if" if="[[_typeStringEnum(property.attrProps)]]">
+                <paper-listbox selected="{{property.value}}">
+                    <template is="dom-repeat" items="[[property.attrProps.enum]]" as="enum">
+                        <paper-item>[[enum]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </template>
+            <template is="dom-if" if="[[_typeStringQuery(property.attrProps)]]">
+                <div>Query</div>
+            </template>
+            <template is="dom-if" if="[[_typeString(property.attrProps)]]">
+                <paper-input label="[[property.attrProps.title]]"
+                             type="text"
+                             readonly="[[readOnly]]"
+                             always-float-label
+                             value="{{property.value}}">
+                </paper-input>
+            </template>
+            <template is="dom-if" if="[[_typeNumber(property.attrProps)]]">
+                <paper-input label="[[property.attrProps.title]]"
+                             type="number"
+                             readonly="[[readOnly]]"
+                             always-float-label
+                             value="{{property.value}}">
+                </paper-input>
+            </template>
+            <template is="dom-if" if="[[_typeBoolean(property.attrProps)]]">
+                <paper-checkbox readonly="[[readOnly]]"
+                                checked="{{property.value}}">
+                                [[property.attrProps.title]]
+                </paper-checkbox>
+            </template>
+            <template is="dom-if" if="[[_typeArray(property.attrProps)]]">
+                <div>{{property.value}}</div>
+            </template>
+            <template is="dom-if" if="[[_typeObject(property.attrProps)]]">
+                <div>{{property.value}}</div>
+            </template>
+            </div>
         </template>
-        </table>
+
+        <p>HI</p>
+        <p>HI</p>
+        <p>HI</p>
+        <p>HI</p>
+
+        <paper-fab hidden={{editing}}  icon="icons:edit" on-tap="doEdit" mini></paper-fab>
+        <paper-fab hidden={{!editing}} icon="icons:done" on-tap="doEdit" mini></paper-fab>
+
     </template>
 
     <script>
@@ -54,10 +149,15 @@ yes
                 level: Number,
                 viewId: String,
                 docId: String,
+                readOnly:{
+                    type: Boolean,
+                    value: true,
+                    //observer: 'dataChanged'
+                },
                 viewDoc:{
                     type:Object,
                     value: function() { return {}; },
-                    observer: 'dataChanged'
+                    //observer: 'dataChanged'
                 },
                 viewPropArr:{
                     type: Array,
@@ -72,12 +172,77 @@ yes
                 var arr =  Object.keys(obj).map(function(key) {
                     return {
                         name: key,
-                        prop: obj[key],
+                        attrProps: obj[key],
                         value: doc[key]
                     };
                 });
                 return arr;
             },
+            doEdit: function(e){
+                this.readOnly=!this.readOnly;
+            },
+            _typeStringHtml: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.media &&
+                attrProps.media.mediaType === 'text/html');
+            },
+            _typeStringBase64: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.media &&
+                attrProps.media.binaryEncoding === 'base64' &&
+                attrProps.media.type === 'image/png');
+            },
+            _typeStringWebGL: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.media &&
+                attrProps.media.type === 'image/webgl');
+            },
+            _typeStringDate: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.format &&
+                attrProps.format === 'date-time');
+            },
+            _typeStringUri: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.format &&
+                attrProps.format === 'uri');
+            },
+            _typeStringEnum: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.enum);
+            },
+            _typeStringQuery: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.query);
+            },
+            _typeString: function(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                !attrProps.media &&
+                !attrProps.format &&
+                !attrProps.enum &&
+                !attrProps.query );
+            },
+            _typeNumber: function(objType) {
+                return objType==='number';
+            },
+            _typeBoolean: function(objType) {
+                return objType==='boolean';
+            },
+            _typeArray: function(objType) {
+                return objType==='array';
+            },
+            _typeObject: function(objType) {
+                return objType==='object';
+            },
+
             dataChanged: function(newValue, oldValue) {
                 console.log('viewDoc:', oldValue, 'to', newValue);
             }

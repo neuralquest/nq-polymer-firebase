@@ -38,8 +38,8 @@ yes
                 <div>Widget [[widget.displayType]]</div>
             </template>
             <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
-                <!--<nq-tree level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree>-->
-                <div>Widget [[widget.displayType]]</div>
+                <nq-tree level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree>
+                <!--<div>Widget [[widget.displayType]]</div>-->
             </template>
             <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
                 <div>Widget [[widget.displayType]]</div>
@@ -100,6 +100,7 @@ yes
             _typeHomePage: function(displayType) {
                 return displayType==='HomePage';
             },
+
             computeDocId(level, route){
                 //console.log('computeDocId');
                 var pathArr = route.path.split('.');
