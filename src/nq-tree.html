@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="nq-view-data.html">
 <link rel="import" href="../bower_components/paper-tree/paper-tree.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 
@@ -21,6 +22,8 @@ yes
 
         </style>
 
+        <nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>
+
         <!--<paper-tree data=[[test]]
                     actions='[{
                         "label": "Play",
@@ -28,15 +31,18 @@ yes
                     }]'>
         </paper-tree>
         new doc-->
-        <paper-tree data=[[doc]]
-                    actions='[{
-                        "label": "Play",
-                        "event": "play"
-                    }]'>
+        <paper-tree
+                id="tree1"
+                data=[[doc]]
+                actions='[{
+                    "label": "Play",
+                    "event": "onshow"
+                }]'>
         </paper-tree>
     </template>
 
     <script>
+
         Polymer({
 
             is: 'nq-tree',
@@ -56,6 +62,12 @@ yes
                 doc:{
                     type:Object,
                     value: function() { return {name: 'Loading...'}; },
+                    //reflectToAttribute: true
+                    //observer: 'dataChanged'
+                },
+                viewDoc:{
+                    type:Object,
+                    value: function() { return {}; },
                     //observer: 'dataChanged'
                 },
                 test: {
@@ -92,8 +104,42 @@ yes
                     }
                 }
             },
+
             ready: function(){
                 var self = this;
+                var tree1 = this.$.tree1;
+                tree1.addEventListener('select', function(event) {
+                    //alert('This is ' + event.detail.data.name);
+                });
+                tree1.addEventListener('get-grandchildren', function(event) {
+                    //alert('This is ' + event.detail.data.name);
+                    if(!event.detail.data.children) return;
+                    event.detail.data.children.forEach(function(child){
+                       if(!child.children){
+                           //Get the children from the query.
+                           self.getChildrenByQueryArr(self.viewDoc.query, child.snapshot).then(function(children){
+                               var childrenArr = [];
+                               children.forEach(function(childSnap){
+                                   var childVal = childSnap.val();
+                                   childrenArr.push({
+                                       name: childVal.title?childVal.title:childVal.name,
+                                       //icon: childVal.icon?childVal.icon:view.query.icon,
+                                       open: false,
+                                       snapshot: childSnap});
+                               });
+                               //if(childrenArr.length > 0) result.children = childrenArr;
+                               //console.log('result ', result);
+                               child.children = childrenArr;
+                               //self.set('doc', {});
+                               //self.set('doc', self.doc);
+                               var newDoc = Object.assign({}, self.doc);
+                               self.set('doc', {});
+                               self.set('doc', newDoc);
+                           });
+                       }
+                    });
+
+                });
                 // Get the view for viewId that we received from widget
                 //TODO replace with nq-view-data ?
                 firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
@@ -107,17 +153,20 @@ yes
                         // Create the root object for the tree
                         var result = {
                             name: rootDoc.title?rootDoc.title:rootDoc.name,
-                            icon: rootDoc.icon?rootDoc.icon:view.rootQuery.icon,
-                            open: true
+                            //icon: rootDoc.icon?rootDoc.icon:view.rootQuery.icon,
+                            open: false,
+                            snapshot: snapshot2
                         };
                         //Get the children from the query.
                         self.getChildrenByQueryArr(view.query, snapshot2).then(function(children){
                             var childrenArr = [];
-                            children.forEach(function(child){
+                            children.forEach(function(childSnap){
+                                var childVal = childSnap.val();
                                 childrenArr.push({
-                                    name: child.title?child.title:child.name,
-                                    icon: child.icon?child.icon:view.query.icon,
-                                    open: false});
+                                    name: childVal.title?childVal.title:childVal.name,
+                                    //icon: childVal.icon?childVal.icon:view.query.icon,
+                                    open: false,
+                                    snapshot: childSnap});
                             });
                             if(childrenArr.length > 0) result.children = childrenArr;
                             //console.log('result ', result);
@@ -143,11 +192,18 @@ yes
                 });
                 return Promise.all(promisesArr).then(function(resultsArr){
                     var concatResults = [];
-                    resultsArr.forEach(function(objects){
-                        for(var key in objects){
+                    //concatResults = concatResults.concat(resultsArr);
+                    resultsArr.forEach(function(snapshot){
+                     /*for(var key in objects){
                             var obj = objects[key];
                             concatResults.push(obj);
-                        }
+                        }*/
+                        snapshot.forEach(function(child){
+                            //var key = child.key;
+                            //var value = child.val();
+                            //user_char[key] = value;
+                            concatResults.push(child);
+                        });
                     });
                     return concatResults;
                 });
@@ -159,7 +215,7 @@ yes
                 return self.getValueByDotNotation(query.where.value, parentSnapshot).then(function(docId) {
                     var ref = firebase.database().ref("documents");
                     return ref.orderByChild(query.where.docProp).equalTo(docId).once("value").then(function(snapshot2) {
-                        return snapshot2.val();
+                        return snapshot2;
                     });
                 });
             },
