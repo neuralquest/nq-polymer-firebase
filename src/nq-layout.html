@@ -37,10 +37,34 @@ yes
                 width: 100%;
                 height: 100%;
                 position: relative;
-                overflow-y: auto;
+                overflow: none;
             }
-
+            .container {
+                height: 240px;
+                border: 4px solid #aaa;
+            }
+            .navpane{
+                width: 240px;
+            }
         </style>
+        <style is="custom-style">
+            /* TODO(polyup): For speed, consider reworking these styles with .classes
+                             and #ids rather than [attributes].
+            */
+            [layout] {
+                @apply(--layout);
+            }
+            [layout][horizontal] {
+                @apply(--layout-horizontal);
+            }
+            [layout][vertical] {
+                @apply(--layout-vertical);
+            }
+            [flex] {
+                @apply(--layout-flex);
+            }
+        </style>
+        <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
@@ -50,12 +74,19 @@ yes
         </firebase-document>
 
         <template is="dom-if" if="{{_hasDivider(page)}}">
-            <paper-drawer-panel class="flex">
-                <!-- Drawer content -->
+            <!--<paper-drawer-panel class="flex">
+                <!-- Drawer content -- >
                 <nq-tabs drawer level="[[level]]" page-id="[[pageId]]"></nq-tabs>
-                <!-- Main content-->
+                <!-- Main content-- >
                 <nq-tabs main class="fit" level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
-            </paper-drawer-panel>
+            </paper-drawer-panel>-->
+            <div class="content" horizontal="" layout="">
+                <nq-tabs class="navpane" level="[[level]]" page-id="[[pageId]]"></nq-tabs>
+                <iron-splitter direction="left" ></iron-splitter>
+                <div flex="">
+                    <nq-tabs level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
+                </div>
+            </div>
         </template>
 
         <!-- Only header layout content -->
