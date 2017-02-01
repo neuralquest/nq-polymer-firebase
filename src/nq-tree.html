@@ -25,7 +25,7 @@ yes
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
-        <nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>
+        <!--<nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>-->
 
         <!--<paper-tree data=[[test]]
                     actions='[{
@@ -65,13 +65,15 @@ yes
                 doc:{
                     type:Object,
                     value: function() { return {name: 'Loading...'}; },
+                    //computed: 'getRootDoc(docId,viewDoc)'
                     //reflectToAttribute: true
                     //observer: 'dataChanged'
                 },
                 viewDoc:{
                     type:Object,
-                    value: function() { return {}; },
-                    observer: 'dataChanged'
+                    value: null
+                    //value: function() { return {}; },
+                   // observer: 'dataChanged'
                 },
                 route: {
                     type: String
@@ -120,12 +122,14 @@ yes
             handelSelect: function (event, self){
                 if(!event.detail.data.pageId) return;
                 var pathArr = self.route.path.split('.');
-                var idx = (self.level+1)*4+1;
-                pathArr[idx] = event.detail.data.pageId;
+                var idx0 = (self.level+1)*4+1;
+                pathArr[idx0] = event.detail.data.pageId;
+                var idx1 = (self.level+1)*4;
+                pathArr[idx1] = event.detail.data.docId;
                 var newPath = pathArr.join('.');
                 self.set('route.path', newPath);
             },
-            handelToggle: function (event, self){
+            handelToggle: function(event, self){
                 if(event.detail.data.gotGrandChildren) return;
                 event.detail.data.gotGrandChildren = true;
                 var idx = 0;
@@ -136,6 +140,7 @@ yes
                         grandChildrenSnaps.forEach(function(childSnap){
                             var childVal = childSnap.val();
                             grandChildrenArr.push({
+                                docId: childSnap.key,
                                 name: childVal.title?childVal.title:childVal.name,
                                 //icon: childVal.icon?childVal.icon:view.query.icon,
                                 open: false,
@@ -153,24 +158,25 @@ yes
                 var self = this;
                 var tree1 = this.$.tree1;
                 tree1.addEventListener('select', function(event){
-                    self.handelSelect(event, self)
+                    self.handelSelect(event, self);//TODO use Arrow notation
                 });
                 tree1.addEventListener('toggle-children', function(event){
-                    self.handelToggle(event, self)
+                    self.handelToggle(event, self);//TODO use Arrow notation
                 });
 
                 // Get the view for viewId that we received from widget
                 //TODO replace with nq-view-data ?
                 firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
-                    var view = snapshot.val();
-                    if(view === {}) return;
+                    self.viewDoc = snapshot.val();
+                    //if(view === {}) return;
                     //Get the root doc from the root query.
-                    self.getDocByQuery(view.rootQuery).then(function(snapshot2){
+                    self.getDocByQuery(self.viewDoc.rootQuery).then(function(snapshot2){
                         var rootDoc = snapshot2.val();
                         if(rootDoc === {}) return;
                         if(!rootDoc) return;
                         // Create the root object for the tree
                         var result = {
+                            docId: snapshot2.key,
                             name: rootDoc.title?rootDoc.title:rootDoc.name,
                             //icon: rootDoc.icon?rootDoc.icon:view.rootQuery.icon,
                             open: false,
@@ -179,12 +185,13 @@ yes
                             pageId: rootDoc.pageId
                         };
                         //Get the children from the query.
-                        self.getChildrenByQueryArr(view.query, snapshot2).then(function(children){
+                        self.getChildrenByQueryArr(self.viewDoc.query, snapshot2).then(function(children){
                             var childrenArr = [];
                             var idx = 0;
                             children.forEach(function(childSnap){
                                 var childVal = childSnap.val();
                                 childrenArr.push({
+                                    docId: childSnap.key,
                                     name: childVal.title?childVal.title:childVal.name,
                                     //icon: childVal.icon?childVal.icon:view.query.icon,
                                     open: false,
@@ -196,6 +203,8 @@ yes
                             });
                             if(childrenArr.length > 0) result.children = childrenArr;
                             //console.log('result ', result);
+                            //self.doc = result;
+                            //self.set('doc.open', true);
                             self.doc = result;
                         });
                     });
