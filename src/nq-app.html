@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="nq-layout.html">
 <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <!--
 `my-blank-element`
@@ -89,7 +90,7 @@ yes
                     <nq-layout level="[[level]]" page-id="[[pageIdComputed]]"></nq-layout>
                 </div>
                 <paper-toolbar>
-                    <span>
+                   <span>
                         <paper-button raised on-tap="login" hidden$="[[user]]">Sign in</paper-button>
                         <paper-button raised on-tap="logout" hidden$="[[!user]]">Sign out</paper-button>
                     </span>
@@ -97,6 +98,12 @@ yes
                         <template is="dom-if" if="[[user]]">
                             <p>User: [[user.displayName]]</p>
                         </template>
+                    </span>
+                    <span style="flex: 1;"></span>
+                    <span style="width: 160px">
+                        <img src="https://firebasestorage.googleapis.com/v0/b/neuralquest-395e9.appspot.com/o/lefkasHome1.png?alt=media&token=bc30558d-8b6c-47b1-a1b7-87df68851fdd"
+                             width="160px" height="24px">
+                        <div style="position:absolute;top:13px; width:inherit;text-align:center;font-size:20px;font-weight:bold;color:white;text-shadow: 2px 2px 4px black">Neuralquest</div>
                     </span>
                 </paper-toolbar>
 

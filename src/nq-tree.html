@@ -17,7 +17,7 @@ yes
             :host {
                 --app-primary-color: #4285f4;
                 --app-secondary-color: black;
-
+                --paper-tree-selected-background-color: rgba(200, 200, 200, 0.5);
                 display: block;
             }
 
@@ -27,15 +27,10 @@ yes
 
         <!--<nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>-->
 
-        <!--<paper-tree data=[[test]]
-                    actions='[{
-                        "label": "Play",
-                        "event": "play"
-                    }]'>
-        </paper-tree>
-        new doc-->
         <paper-tree
                 id="tree1"
+                on-select="nodeSelected"
+                on-toggle-children="toggleChildren"
                 data=[[doc]]
                 actions='[{
                     "label": "Play",
@@ -54,16 +49,11 @@ yes
                 level: Number,
                 viewId: String,
                 docId: String,
-                schema:{
-                    type:Object,
-                    value: function() { return {}; },
-                    //observer: 'dataChanged'
-                },
                 pageId: {
                     type: String
                 },
                 doc:{
-                    type:Object,
+                    type: Object,
                     value: function() { return {name: 'Loading...'}; },
                     //computed: 'getRootDoc(docId,viewDoc)'
                     //reflectToAttribute: true
@@ -77,63 +67,27 @@ yes
                 },
                 route: {
                     type: String
-                },
-                test: {
-                    value: function() {
-                        return {
-                            "name": "Owners",
-                            "icon": "folder",
-                            "open": true,
-                            "children": [{
-                                "name": "Users",
-                                "icon": "folder",
-                                "children": [{
-                                    "name": "platoscave",
-                                    "icon": "page",
-                                    "children": [{
-                                        "name": "Neuralquest",
-                                        "icon": "page"
-                                    }, {
-                                        "name": "ACME Bicycle Shop",
-                                        "icon": "page"
-                                    }]
-                                }, {
-                                    "name": "ACME User1",
-                                    "icon": "page"
-                                }, {
-                                    "name": "ACME User2",
-                                    "icon": "page"
-                                }]
-                            }, {
-                                "name": "Organizations",
-                                "icon": "folder",
-                                "children": [{
-                                    "name": "Neuralquest",
-                                    "icon": "page"
-                                }, {
-                                    "name": "ACME Bicycle Shop",
-                                    "icon": "page"
-                                }]
-                            }]
-                        };
-                    }
                 }
             },
-            handelSelect: function (event, self){
-                if(!event.detail.data.pageId) return;
-                var pathArr = self.route.path.split('.');
-                var idx0 = (self.level+1)*4+1;
-                pathArr[idx0] = event.detail.data.pageId;
-                var idx1 = (self.level+1)*4;
-                pathArr[idx1] = event.detail.data.docId;
+            nodeSelected: function (event){
+                var nodeData = Polymer.dom(event).rootTarget.data;
+                console.log('Selected: ', nodeData.name);
+                if(!nodeData.pageId) return;
+                var pathArr = this.route.path.split('.');
+                var idx = (this.level+1)*4;
+                pathArr[idx] = nodeData.docId;
+                pathArr[idx+1] = nodeData.pageId;
+                var pathArr = pathArr.slice(0, idx+2);
                 var newPath = pathArr.join('.');
-                self.set('route.path', newPath);
+                this.set('route.path', newPath);
             },
-            handelToggle: function(event, self){
-                if(event.detail.data.gotGrandChildren) return;
-                event.detail.data.gotGrandChildren = true;
+            toggleChildren: function(event){
+                var self = this;
+                var nodeData = Polymer.dom(event).rootTarget.data;
+                if(nodeData.gotGrandChildren) return;
+                nodeData.gotGrandChildren = true;
                 var idx = 0;
-                event.detail.data.children.forEach(function(child){
+                nodeData.children.forEach(function(child){
                     var updatePath = child.updatePath;
                     self.getChildrenByQueryArr(self.viewDoc.query, child.snapshot).then(function(grandChildrenSnaps) {
                         var grandChildrenArr = [];
@@ -156,14 +110,6 @@ yes
             },
             ready: function(){
                 var self = this;
-                var tree1 = this.$.tree1;
-                tree1.addEventListener('select', function(event){
-                    self.handelSelect(event, self);//TODO use Arrow notation
-                });
-                tree1.addEventListener('toggle-children', function(event){
-                    self.handelToggle(event, self);//TODO use Arrow notation
-                });
-
                 // Get the view for viewId that we received from widget
                 //TODO replace with nq-view-data ?
                 firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
@@ -229,14 +175,7 @@ yes
                     var concatResults = [];
                     //concatResults = concatResults.concat(resultsArr);
                     resultsArr.forEach(function(snapshot){
-                     /*for(var key in objects){
-                            var obj = objects[key];
-                            concatResults.push(obj);
-                        }*/
                         snapshot.forEach(function(child){
-                            //var key = child.key;
-                            //var value = child.val();
-                            //user_char[key] = value;
                             concatResults.push(child);
                         });
                     });

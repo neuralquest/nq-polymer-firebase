@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
 <link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
@@ -64,7 +65,7 @@ yes
                 @apply(--layout-flex);
             }
         </style>
-        <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
@@ -72,6 +73,14 @@ yes
             path="/documents/{{pageId}}"
             data="{{page}}">
         </firebase-document>
+
+<!--
+        <app-indexeddb-mirror
+                key="pages"
+                data="{{livePage}}"
+                persisted-data="{{page}}">
+        </app-indexeddb-mirror>
+-->
 
         <template is="dom-if" if="{{_hasDivider(page)}}">
             <!--<paper-drawer-panel class="flex">
