@@ -17,7 +17,7 @@ yes
             :host {
                 --app-primary-color: #4285f4;
                 --app-secondary-color: black;
-                --paper-tree-selected-background-color: rgba(200, 200, 200, 0.5);
+                --paper-tree-selected-background-color: rgba(0, 0, 200, 0.2);
                 display: block;
             }
 
@@ -33,8 +33,12 @@ yes
                 on-toggle-children="toggleChildren"
                 data=[[doc]]
                 actions='[{
-                    "label": "Play",
-                    "event": "onshow"
+                    "label": "Add Child",
+                    "event": "addChild"
+                },
+                {
+                    "label": "Delete",
+                    "event": "delete"
                 }]'>
         </paper-tree>
     </template>
@@ -86,25 +90,10 @@ yes
                 var nodeData = Polymer.dom(event).rootTarget.data;
                 if(nodeData.gotGrandChildren) return;
                 nodeData.gotGrandChildren = true;
-                var idx = 0;
                 nodeData.children.forEach(function(child){
                     var updatePath = child.updatePath;
-                    self.getChildrenByQueryArr(self.viewDoc.query, child.snapshot).then(function(grandChildrenSnaps) {
-                        var grandChildrenArr = [];
-                        grandChildrenSnaps.forEach(function(childSnap){
-                            var childVal = childSnap.val();
-                            grandChildrenArr.push({
-                                docId: childSnap.key,
-                                name: childVal.title?childVal.title:childVal.name,
-                                //icon: childVal.icon?childVal.icon:view.query.icon,
-                                open: false,
-                                snapshot: childSnap,
-                                updatePath: updatePath+'.children.'+idx,
-                                pageId: childVal.pageId
-                            });
-                        });
+                    self.getChildrenByQueryArr(self.viewDoc.query, child).then(function(grandChildrenArr) {
                         self.set(updatePath+'.children', grandChildrenArr);
-                        idx++;
                     });
                 });
             },
@@ -124,39 +113,22 @@ yes
                         var result = {
                             docId: snapshot2.key,
                             name: rootDoc.title?rootDoc.title:rootDoc.name,
-                            //icon: rootDoc.icon?rootDoc.icon:view.rootQuery.icon,
+                            src: self.viewDoc.rootQuery.icon?self.viewDoc.rootQuery.icon:rootDoc.icon,
                             open: false,
                             snapshot: snapshot2,
                             updatePath: 'doc',
                             pageId: rootDoc.pageId
                         };
                         //Get the children from the query.
-                        self.getChildrenByQueryArr(self.viewDoc.query, snapshot2).then(function(children){
-                            var childrenArr = [];
-                            var idx = 0;
-                            children.forEach(function(childSnap){
-                                var childVal = childSnap.val();
-                                childrenArr.push({
-                                    docId: childSnap.key,
-                                    name: childVal.title?childVal.title:childVal.name,
-                                    //icon: childVal.icon?childVal.icon:view.query.icon,
-                                    open: false,
-                                    snapshot: childSnap,
-                                    updatePath: result.updatePath+'.children.'+idx,
-                                    pageId: childVal.pageId
-                                });
-                                idx++;
-                            });
-                            if(childrenArr.length > 0) result.children = childrenArr;
-                            //console.log('result ', result);
-                            //self.doc = result;
-                            //self.set('doc.open', true);
+                        self.getChildrenByQueryArr(self.viewDoc.query, result).then(function(children){
+                            result.children = children;
                             self.doc = result;
                         });
                     });
                 });
             },
             getDocByQuery: function(query) {
+                console.log('doc by query: ', query);
                 if(!query) return {};
                 var self = this;
                 return self.getValueByDotNotation(query.where.value).then(function(docId) {
@@ -164,20 +136,34 @@ yes
                     return firebase.database().ref('/documents/' + docId).once('value');
                 });
             },
-            getChildrenByQueryArr: function(queryArr, parentSnapshot) {
+            getChildrenByQueryArr: function(queryArr, parentData) {
+                console.log('queryArr: ', queryArr);
+                var updatePath = parentData.updatePath;
                 if(!queryArr) return [];
                 var self = this;
                 var promisesArr = [];
                 queryArr.forEach(function(query){
-                    promisesArr.push(self.getDocArrayByQuery(query, parentSnapshot));
+                    promisesArr.push(self.getDocArrayByQuery(query, parentData.snapshot));
                 });
                 return Promise.all(promisesArr).then(function(resultsArr){
                     var concatResults = [];
                     //concatResults = concatResults.concat(resultsArr);
+                    var idx = 0;
                     resultsArr.forEach(function(snapshot){
-                        snapshot.forEach(function(child){
-                            concatResults.push(child);
+                        snapshot.forEach(function(childSnap){
+                            //concatResults.push(child);
+                            var childVal = childSnap.val();
+                            concatResults.push({
+                                docId: childSnap.key,
+                                name: childVal.title?childVal.title:childVal.name,
+                                src: queryArr[idx].icon?queryArr[idx].icon:childVal.icon,
+                                open: false,
+                                snapshot: childSnap,
+                                updatePath: updatePath+'.children.'+idx,
+                                pageId: childVal.pageId
+                            });
                         });
+                        idx++;
                     });
                     return concatResults;
                 });
