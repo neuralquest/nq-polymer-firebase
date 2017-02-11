@@ -7,6 +7,7 @@
 <link rel="import" href="nq-layout.html">
 <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <!--
 `my-blank-element`
@@ -16,6 +17,9 @@ yes
 -->
 
 <dom-module id="nq-app">
+
+    <style is="custom-style" include="iron-flex"></style>
+
     <style>
         :host {
             --app-primary-color: #4285f4;
@@ -60,7 +64,7 @@ yes
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
-        <div>
+        <!--<div>
             <template is="dom-if" if="[[pageIdComputed]]">
                 <div class="container">
                     <nq-layout level="[[level]]" page-id="[[pageIdComputed]]"></nq-layout>
@@ -83,14 +87,14 @@ yes
                     </span>
                 </paper-toolbar>
             </template>
-        </div>
+        </div>-->
         <!-- See http://stackoverflow.com/questions/31887122/how-to-make-a-paper-toolbar-stay-at-bottom-->
 
-        <!--<template is="dom-if" if="[[pageIdComputed]]">
+        <template is="dom-if" if="[[pageIdComputed]]">
             <paper-header-panel class="flex">
-                <div class="container">
-                    <nq-layout level="[[level]]" page-id="[[pageIdComputed]]"></nq-layout>
-                </div>
+
+                <nq-layout level="[[level]]" page-id="[[pageIdComputed]]"></nq-layout>
+
                 <paper-toolbar>
                    <span>
                         <paper-button raised on-tap="login" hidden$="[[user]]">Sign in</paper-button>
@@ -110,7 +114,7 @@ yes
                 </paper-toolbar>
 
             </paper-header-panel>
-        </template>-->
+        </template>
     </template>
 
     <script>

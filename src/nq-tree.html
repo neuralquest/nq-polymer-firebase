@@ -58,16 +58,11 @@ yes
                 },
                 doc:{
                     type: Object,
-                    value: function() { return {name: 'Loading...'}; },
-                    //computed: 'getRootDoc(docId,viewDoc)'
-                    //reflectToAttribute: true
+                    value: function() { return {
+                        name: 'Loading...',
+                        loading: true}
+                    }
                     //observer: 'dataChanged'
-                },
-                viewDoc:{
-                    type:Object,
-                    value: null
-                    //value: function() { return {}; },
-                   // observer: 'dataChanged'
                 },
                 route: {
                     type: String
@@ -93,6 +88,7 @@ yes
                 nodeData.children.forEach(function(child){
                     var updatePath = child.updatePath;
                     self.getChildrenByQueryArr(self.viewDoc.query, child).then(function(grandChildrenArr) {
+                        self.set(updatePath+'.loading', false);
                         self.set(updatePath+'.children', grandChildrenArr);
                     });
                 });
@@ -105,7 +101,7 @@ yes
                     self.viewDoc = snapshot.val();
                     //if(view === {}) return;
                     //Get the root doc from the root query.
-                    self.getDocByQuery(self.viewDoc.rootQuery).then(function(snapshot2){
+                    self.getDocByQuery(self.viewDoc.rootQuery, function(snapshot2){
                         var rootDoc = snapshot2.val();
                         if(rootDoc === {}) return;
                         if(!rootDoc) return;
@@ -117,23 +113,28 @@ yes
                             open: false,
                             snapshot: snapshot2,
                             updatePath: 'doc',
-                            pageId: rootDoc.pageId
+                            pageId: rootDoc.pageId,
+                            loading: true
                         };
+                        self.doc = result;
                         //Get the children from the query.
                         self.getChildrenByQueryArr(self.viewDoc.query, result).then(function(children){
+                            result.loading = false;
                             result.children = children;
-                            self.doc = result;
+                            self.set('doc.loading', result.loading);
+                            self.set('doc.children', result.children);
+                            //self.doc = result;
                         });
                     });
                 });
             },
-            getDocByQuery: function(query) {
+            getDocByQuery: function(query, callback) {
                 console.log('doc by query: ', query);
                 if(!query) return {};
                 var self = this;
                 return self.getValueByDotNotation(query.where.value).then(function(docId) {
                     // Get the root doc
-                    return firebase.database().ref('/documents/' + docId).once('value');
+                    firebase.database().ref('/documents/' + docId).on('value', callback);
                 });
             },
             getChildrenByQueryArr: function(queryArr, parentData) {
@@ -143,13 +144,14 @@ yes
                 var self = this;
                 var promisesArr = [];
                 queryArr.forEach(function(query){
-                    promisesArr.push(self.getDocArrayByQuery(query, parentData.snapshot));
+                    promisesArr.push(self.getDocArrayByQuery2(query, parentData.snapshot));
                 });
                 return Promise.all(promisesArr).then(function(resultsArr){
                     var concatResults = [];
                     //concatResults = concatResults.concat(resultsArr);
                     var idx = 0;
                     resultsArr.forEach(function(snapshot){
+                        var idx0 = 0;
                         snapshot.forEach(function(childSnap){
                             //concatResults.push(child);
                             var childVal = childSnap.val();
@@ -159,16 +161,27 @@ yes
                                 src: queryArr[idx].icon?queryArr[idx].icon:childVal.icon,
                                 open: false,
                                 snapshot: childSnap,
-                                updatePath: updatePath+'.children.'+idx,
-                                pageId: childVal.pageId
+                                updatePath: updatePath+'.children.'+idx0,
+                                pageId: childVal.pageId,
+                                loading: true
                             });
+                            idx0++;
                         });
                         idx++;
                     });
                     return concatResults;
                 });
             },
-            getDocArrayByQuery: function(query, parentSnapshot) {
+            getDocArrayByQuery: function(query, parentSnapshot, callback) {
+                var self = this;
+                //console.log('Tree query from', query.from, 'where', query.where );
+                if(!query) return [];
+                return self.getValueByDotNotation(query.where.value, parentSnapshot).then(function(docId) {
+                    var ref = firebase.database().ref("documents");
+                    return ref.orderByChild(query.where.docProp).equalTo(docId).on("value", callback);
+                });
+            },
+            getDocArrayByQuery2: function(query, parentSnapshot) {
                 var self = this;
                 //console.log('Tree query from', query.from, 'where', query.where );
                 if(!query) return [];
