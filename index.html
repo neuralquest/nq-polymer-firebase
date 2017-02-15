@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!--by removing <!DOCTYPE html> we can use height 100%, however this fails in IE-->
-    <!--http://stackoverflow.com/questions/34660221/polymer-paper-header-panel-not-showing-any-content-in-paper-drawer-panel-->
-    <!--https://github.com/PolymerElements/paper-header-panel/issues/77-->
     <meta charset="utf-8">
     <meta name="generator" content="Polymer Starter Kit">
     <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
@@ -91,10 +88,16 @@
 
     <link rel="import" href="/src/nq-app.html">
 
-    <style is="custom-style" include="iron-flex"></style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment iron-positioning"></style><!--must: is="custom-style"-->
+
+    <style>
+        body {
+            font-family: 'Roboto', 'Noto', sans-serif;
+        }
+    </style>
 
 </head>
-<body class="fullbleed layout vertical">
-<nq-app></nq-app>
-</body>
+    <body class="fullbleed layout vertical ">
+        <nq-app class="flex"></nq-app>
+    </body>
 </html>

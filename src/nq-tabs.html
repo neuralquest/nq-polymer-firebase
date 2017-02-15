@@ -8,6 +8,7 @@
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="nq-widgets.html">
 <link rel="import" href="nq-layout.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 
 <!--
@@ -19,26 +20,18 @@ yes
 
 <dom-module id="nq-tabs">
     <template>
+
+        <style include="iron-flex iron-flex-alignment iron-positioning"></style>
+
         <style>
             :host {
                 display: block;
                 height: 100%;
-                margin: 0;
-            }
-            paper-scroll-header-panel {
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
+                position: relative;
             }
             paper-tabs {
                 background-color : #3f51b5;
                 color: white;
-            }
-            .content {
-                width: 100%;
-                height: 100%;
-                position: relative;
-                overflow-y: auto;
             }
         </style>
 
@@ -52,13 +45,14 @@ yes
 
         <template is="dom-if" if="{{hasMoreThanOne}}">
             <!-- More than one tab, so draw tab bar-->
-            <paper-header-panel class="flex">
-                <paper-tabs class="paper-header" selected="{{selected}}">
+            <paper-header-panel class="layout vertical">
+                <paper-tabs selected="{{selected}}" scrollable>
                     <template is="dom-repeat" items="{{tabs}}" as="tab">
                         <paper-tab>[[tab.name]]</paper-tab>
                     </template>
                 </paper-tabs>
-                <iron-pages selected="{{selected}}">
+                <div class="fit">
+                <iron-pages class="flex" selected="{{selected}}">
                     <template is="dom-repeat" items="{{tabs}}" as="tab">
                         <div>
                             <!-- Tab content -->
@@ -79,7 +73,11 @@ yes
                         </div>
                     </template>
                 </iron-pages>
+                </div>
             </paper-header-panel>
+            <!--<div class="relative" style="height:100%;">
+
+            </div>-->
         </template>
 
 

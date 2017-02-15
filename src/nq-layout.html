@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../bower_components/iron-splitter/iron-splitter.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="nq-tabs.html">
 
 <!--
@@ -17,6 +18,9 @@ yes
 
 <dom-module id="nq-layout">
     <template>
+
+        <style include="iron-flex iron-flex-alignment iron-positioning"></style>
+
         <style>
             :host {
                 --app-primary-color: #4285f4;
@@ -24,9 +28,8 @@ yes
 
                 display: block;
                 height: 100%;
-                margin: 0;
+                position: relative;
             }
-
             app-header {
                 color: #fff;
                 background-color: var(--app-primary-color);
@@ -34,38 +37,10 @@ yes
             app-header paper-icon-button {
                 --paper-icon-button-ink-color: white;
             }
-            .content {
-                width: 100%;
-                height: 100%;
-                position: relative;
-                overflow: none;
-            }
-            .container {
-                height: 240px;
-                border: 4px solid #aaa;
-            }
             .navpane{
                 width: 240px;
             }
         </style>
-        <style is="custom-style">
-            /* TODO(polyup): For speed, consider reworking these styles with .classes
-                             and #ids rather than [attributes].
-            */
-            [layout] {
-                @apply(--layout);
-            }
-            [layout][horizontal] {
-                @apply(--layout-horizontal);
-            }
-            [layout][vertical] {
-                @apply(--layout-vertical);
-            }
-            [flex] {
-                @apply(--layout-flex);
-            }
-        </style>
-
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
@@ -84,16 +59,19 @@ yes
 
         <template is="dom-if" if="{{_hasDivider(page)}}">
             <!--<paper-drawer-panel class="flex">
-                <!-- Drawer content -- >
+                <!-- Navigation content -- >
                 <nq-tabs drawer level="[[level]]" page-id="[[pageId]]"></nq-tabs>
                 <!-- Main content-- >
                 <nq-tabs main class="fit" level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
             </paper-drawer-panel>-->
-            <div class="content" horizontal="" layout="">
-                <nq-tabs class="navpane" level="[[level]]" page-id="[[pageId]]"></nq-tabs>
-                <iron-splitter direction="left" ></iron-splitter>
-                <div flex="">
-                    <nq-tabs level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
+            <div>
+                <div class="layout horizontal fit">
+                    <!-- Navigation content -->
+                    <nq-tabs class="navpane" level="[[level]]" page-id="[[pageId]]"></nq-tabs>
+                    <!-- Splitter -->
+                    <iron-splitter direction="left" ></iron-splitter>
+                    <!-- Main content -->
+                    <nq-tabs class="flex" level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
                 </div>
             </div>
         </template>
