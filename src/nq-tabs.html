@@ -45,20 +45,19 @@ yes
 
         <template is="dom-if" if="{{hasMoreThanOne}}">
             <!-- More than one tab, so draw tab bar-->
-            <paper-header-panel class="layout vertical">
+            <div class="layout vertical fit">
                 <paper-tabs selected="{{selected}}" scrollable>
                     <template is="dom-repeat" items="{{tabs}}" as="tab">
                         <paper-tab>[[tab.name]]</paper-tab>
                     </template>
                 </paper-tabs>
-                <div class="fit">
-                <iron-pages class="flex" selected="{{selected}}">
+                <iron-pages class="flex relative" selected="{{selected}}">
                     <template is="dom-repeat" items="{{tabs}}" as="tab">
                         <div>
                             <!-- Tab content -->
                             <template is="dom-if" if="{{_hasSubPage(tab)}}">
                                 <!-- This tab has a sub-page -->
-                                <nq-layout level="[[level]]" page-id="[[tab.pageId]]"></nq-layout>
+                                <nq-layout class="fit"  level="[[level]]" page-id="[[tab.pageId]]"></nq-layout>
                             </template>
                             <template is="dom-if" if="{{_notHasSubPage(tab)}}">
                                 <!-- This tab has widgets
@@ -67,14 +66,40 @@ yes
                                 <p style="color:red">pagId [[pageId]]</p>
                                 <p style="color:red">tabName [[tab.name]]</p> -->
 
+                                <nq-widgets class="fit" level="[[level]]" widgets="[[tab.widgets]]"></nq-widgets>
+                            </template>
+                        </div>
+                    </template>
+                </iron-pages>
+            </div>
+            <!--<paper-header-panel class="layout vertical">
+                <paper-tabs selected="{{selected}}" scrollable>
+                    <template is="dom-repeat" items="{{tabs}}" as="tab">
+                        <paper-tab>[[tab.name]]</paper-tab>
+                    </template>
+                </paper-tabs>
+                <iron-pages class="flex" selected="{{selected}}">
+                    <template is="dom-repeat" items="{{tabs}}" as="tab">
+                        <div>
+                            <!-- Tab content -- >
+                            <template is="dom-if" if="{{_hasSubPage(tab)}}">
+                                <!-- This tab has a sub-page -- >
+                                <nq-layout level="[[level]]" page-id="[[tab.pageId]]"></nq-layout>
+                            </template>
+                            <template is="dom-if" if="{{_notHasSubPage(tab)}}">
+                                <!-- This tab has widgets
+                                <p style="color:red">selected [[selected]]</p>
+                                <p style="color:red">level [[level]]</p>
+                                <p style="color:red">pagId [[pageId]]</p>
+                                <p style="color:red">tabName [[tab.name]]</p> -- >
+
                                 <nq-widgets level="[[level]]" widgets="[[tab.widgets]]"></nq-widgets>
 
                             </template>
                         </div>
                     </template>
                 </iron-pages>
-                </div>
-            </paper-header-panel>
+            </paper-header-panel>-->
             <!--<div class="relative" style="height:100%;">
 
             </div>-->

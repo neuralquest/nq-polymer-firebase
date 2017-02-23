@@ -1,8 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="nq-view-data.html">
 <link rel="import" href="../bower_components/paper-tree/paper-tree.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="nq-view-data.html">
 
 <!--
 `my-blank-element`
@@ -17,8 +17,19 @@ yes
             :host {
                 --app-primary-color: #4285f4;
                 --app-secondary-color: black;
-                --paper-tree-selected-background-color: rgba(0, 0, 200, 0.2);
                 display: block;
+
+                --paper-tree-selected-background-color: rgba(0, 0, 200, 0.2);
+
+                --loading-icon-theme: {
+                    content: '';
+                    background:url('loading.svg');
+                    background-size:cover;
+                    position:absolute;
+                    width:24px;
+                    height:24px;
+                    margin-left:-24px;
+                };
             }
 
         </style>
@@ -30,7 +41,7 @@ yes
         <paper-tree
                 id="tree1"
                 on-select="nodeSelected"
-                on-toggle-children="toggleChildren"
+                on-toggle="toggleChildren"
                 data=[[doc]]
                 actions='[{
                     "label": "Add Child",
@@ -42,6 +53,8 @@ yes
                 }]'>
         </paper-tree>
     </template>
+
+    <!--<script src="firebase-as-array.js"></script>-->
 
     <script>
 
@@ -80,6 +93,7 @@ yes
                 var newPath = pathArr.join('.');
                 this.set('route.path', newPath);
             },
+            /*See https://firebase.googleblog.com/2014/05/handling-synchronized-arrays-with-real.html*/
             toggleChildren: function(event){
                 var self = this;
                 var nodeData = Polymer.dom(event).rootTarget.data;
@@ -93,37 +107,39 @@ yes
                     });
                 });
             },
-            ready: function(){
+            attached: function(){
                 var self = this;
-                // Get the view for viewId that we received from widget
-                //TODO replace with nq-view-data ?
-                firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
-                    self.viewDoc = snapshot.val();
-                    //if(view === {}) return;
-                    //Get the root doc from the root query.
-                    self.getDocByQuery(self.viewDoc.rootQuery, function(snapshot2){
-                        var rootDoc = snapshot2.val();
-                        if(rootDoc === {}) return;
-                        if(!rootDoc) return;
-                        // Create the root object for the tree
-                        var result = {
-                            docId: snapshot2.key,
-                            name: rootDoc.title?rootDoc.title:rootDoc.name,
-                            src: self.viewDoc.rootQuery.icon?self.viewDoc.rootQuery.icon:rootDoc.icon,
-                            open: false,
-                            snapshot: snapshot2,
-                            updatePath: 'doc',
-                            pageId: rootDoc.pageId,
-                            loading: true
-                        };
-                        self.doc = result;
-                        //Get the children from the query.
-                        self.getChildrenByQueryArr(self.viewDoc.query, result).then(function(children){
-                            result.loading = false;
-                            result.children = children;
-                            self.set('doc.loading', result.loading);
-                            self.set('doc.children', result.children);
-                            //self.doc = result;
+                this.async(function() {
+                    // Get the view for viewId that we received from widget
+                    //TODO replace with nq-view-data ?
+                    firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
+                        self.viewDoc = snapshot.val();
+                        //if(view === {}) return;
+                        //Get the root doc from the root query.
+                        self.getDocByQuery(self.viewDoc.rootQuery, function(snapshot2){
+                            var rootDoc = snapshot2.val();
+                            if(rootDoc === {}) return;
+                            if(!rootDoc) return;
+                            // Create the root object for the tree
+                            var result = {
+                                docId: snapshot2.key,
+                                name: rootDoc.title?rootDoc.title:rootDoc.name,
+                                src: self.viewDoc.rootQuery.icon?self.viewDoc.rootQuery.icon:rootDoc.icon,
+                                open: false,
+                                snapshot: snapshot2,
+                                updatePath: 'doc',
+                                pageId: rootDoc.pageId,
+                                loading: true
+                            };
+                            self.doc = result;
+                            //Get the children from the query.
+                            self.getChildrenByQueryArr(self.viewDoc.query, result).then(function(children){
+                                result.loading = false;
+                                result.children = children;
+                                self.set('doc.loading', result.loading);
+                                self.set('doc.children', result.children);
+                                //self.doc = result;
+                            });
                         });
                     });
                 });

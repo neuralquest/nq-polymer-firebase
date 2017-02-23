@@ -4,6 +4,7 @@
 <link rel="import" href="nq-home.html">
 <link rel="import" href="nq-form.html">
 <link rel="import" href="nq-3d-class-model.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <!--
 `my-blank-element`
@@ -14,6 +15,9 @@ yes
 
 <dom-module id="nq-widgets">
     <template>
+
+        <style include="iron-flex iron-flex-alignment iron-positioning"></style>
+
         <style>
             :host {
                 --app-primary-color: #4285f4;
@@ -30,35 +34,35 @@ yes
         </style>
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
+        <div class="layout vertical fit">
+            <template is="dom-repeat" items="[[widgets]]" as="widget">
 
-        <template is="dom-repeat" items="[[widgets]]" as="widget">
+                <!-- Draw widget-->
+                <template is="dom-if" if="[[_typeDocument(widget.displayType)]]">
+                    <div>Widget [[widget.displayType]]</div>
+                </template>
+                <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
+                    <nq-tree level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree>
+                    <!--<div>Widget [[widget.displayType]]</div>-->
+                </template>
+                <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
+                    <div>Widget [[widget.displayType]]</div>
+                </template>
+                <template is="dom-if" if="[[_type3dClassModel(widget.displayType)]]">
+                    <nq-3d-class-model level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-3d-class-model>
+                </template>
+                <template is="dom-if" if="[[_typeProcessModel(widget.displayType)]]">
+                    <div>Widget [[widget.displayType]]</div>
+                </template>
+                <template is="dom-if" if="[[_typeForm(widget.displayType)]]">
+                    <nq-form level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-form>
+                </template>
+                <template is="dom-if" if="[[_typeHomePage(widget.displayType)]]">
+                    <nq-home level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-home>
+                </template>
 
-            <!-- Draw widget-->
-            <template is="dom-if" if="[[_typeDocument(widget.displayType)]]">
-                <div>Widget [[widget.displayType]]</div>
             </template>
-            <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
-                <nq-tree level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree>
-                <!--<div>Widget [[widget.displayType]]</div>-->
-            </template>
-            <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
-                <div>Widget [[widget.displayType]]</div>
-            </template>
-            <template is="dom-if" if="[[_type3dClassModel(widget.displayType)]]">
-                <nq-3d-class-model level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-3d-class-model>
-            </template>
-            <template is="dom-if" if="[[_typeProcessModel(widget.displayType)]]">
-                <div>Widget [[widget.displayType]]</div>
-            </template>
-            <template is="dom-if" if="[[_typeForm(widget.displayType)]]">
-                <nq-form level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-form>
-            </template>
-            <template is="dom-if" if="[[_typeHomePage(widget.displayType)]]">
-                <nq-home level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-home>
-            </template>
-
-        </template>
-
+        </div>
     </template>
 
     <script>
