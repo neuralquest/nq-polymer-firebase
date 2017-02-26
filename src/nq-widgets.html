@@ -31,10 +31,13 @@ yes
                 background-size: 20px 200px;
                 background-repeat-y: no-repeat;
             }
+            .overflow-y{
+                overflow-y:auto;
+            }
         </style>
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
-        <div class="layout vertical fit">
+        <div class="layout vertical fit overflow-y">
             <template is="dom-repeat" items="[[widgets]]" as="widget">
 
                 <!-- Draw widget-->
@@ -42,23 +45,23 @@ yes
                     <div>Widget [[widget.displayType]]</div>
                 </template>
                 <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
-                    <nq-tree level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree>
+                    <nq-tree class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree>
                     <!--<div>Widget [[widget.displayType]]</div>-->
                 </template>
                 <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
                 <template is="dom-if" if="[[_type3dClassModel(widget.displayType)]]">
-                    <nq-3d-class-model level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-3d-class-model>
+                    <nq-3d-class-model class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-3d-class-model>
                 </template>
                 <template is="dom-if" if="[[_typeProcessModel(widget.displayType)]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
                 <template is="dom-if" if="[[_typeForm(widget.displayType)]]">
-                    <nq-form level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-form>
+                    <nq-form class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-form>
                 </template>
                 <template is="dom-if" if="[[_typeHomePage(widget.displayType)]]">
-                    <nq-home level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-home>
+                    <nq-home class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-home>
                 </template>
 
             </template>

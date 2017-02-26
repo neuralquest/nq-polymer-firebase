@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../bower_components/polymer-quill/polymer-quill-html-render.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <!--
 `my-blank-element`
 yes
@@ -10,25 +12,33 @@ yes
 
 <dom-module id="nq-home">
     <template>
+
+        <style include="iron-flex iron-flex-alignment iron-positioning"></style>
+
         <style>
             :host {
                 --app-primary-color: #4285f4;
                 --app-secondary-color: black;
 
                 display: block;
-                height:100%;
+                height: 100%;
+                position: relative;
             }
 
-            .backgroundClass {
+            polymer-quill-html-render.full {
                 --polymer-quill-html-background-color: transparent;
             }
-            ::content .headline{position:absolute; top:30%; width:100%;text-align:center;font-size:40px;font-weight:bold;color:white;text-shadow: 2px 2px 4px black}
+            /*::content .headline{position:absolute; top:30%; width:100%;text-align:center;font-size:40px;font-weight:bold;color:white;text-shadow: 2px 2px 4px black}
             ::content .columns {
-                -webkit-column-width: 300px; /* Chrome, Safari, Opera */
-                -moz-column-width: 300px; /* Firefox */
+                -webkit-column-width: 300px; /* Chrome, Safari, Opera * /
+                -moz-column-width: 300px; /* Firefox * /
                 column-width: 300px;
                 max-width:800px;
             }
+
+                --polymer-quill-editor-max-height: 300px;
+                --polymer-quill-editor-min-height: 100px;
+            */
         </style>
 
         <firebase-document
@@ -36,11 +46,20 @@ yes
                 data="{{doc}}">
         </firebase-document>
 
+        <!--<div class="fit overflowy">[[doc.description]]</div>-->
+
         <polymer-quill-html-render
-                class="backgroundClass"
+                class="fit full"
                 id="quilDoc"
                 content="{{doc.description}}">
         </polymer-quill-html-render>
+
+        <!--<polymer-quill
+                class="full"
+                id="quilDoc"
+                content="<h2>Hello World! - Store as HTML</h2>"
+                store-as="html">
+        </polymer-quill>-->
 
     </template>
 

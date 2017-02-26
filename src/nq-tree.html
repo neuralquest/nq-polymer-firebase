@@ -112,7 +112,8 @@ yes
                 this.async(function() {
                     // Get the view for viewId that we received from widget
                     //TODO replace with nq-view-data ?
-                    firebase.database().ref('/documents/' + self.viewId).once('value').then(function(snapshot) {
+                    //ref.orderByChild(query.where.docProp).equalTo(docId).on("value", callback);
+                    firebase.database().ref('/documents/' + self.viewId).on('value', function(snapshot) {
                         self.viewDoc = snapshot.val();
                         //if(view === {}) return;
                         //Get the root doc from the root query.

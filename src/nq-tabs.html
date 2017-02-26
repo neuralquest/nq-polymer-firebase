@@ -60,12 +60,7 @@ yes
                                 <nq-layout class="fit"  level="[[level]]" page-id="[[tab.pageId]]"></nq-layout>
                             </template>
                             <template is="dom-if" if="{{_notHasSubPage(tab)}}">
-                                <!-- This tab has widgets
-                                <p style="color:red">selected [[selected]]</p>
-                                <p style="color:red">level [[level]]</p>
-                                <p style="color:red">pagId [[pageId]]</p>
-                                <p style="color:red">tabName [[tab.name]]</p> -->
-
+                                <!-- This tab has widgets -->
                                 <nq-widgets class="fit" level="[[level]]" widgets="[[tab.widgets]]"></nq-widgets>
                             </template>
                         </div>
@@ -113,13 +108,8 @@ yes
                 <nq-layout level="[[level]]" page-id="[[tabs.0.pageId]]"></nq-layout>
             </template>
             <template is="dom-if" if="{{_notHasSubPage(tabs.0)}}">
-                <!-- This tab has widgets
-                <p style="color:green">level [[level]]</p>
-                <p style="color:green">pageId [[pageId]]</p>
-                <p style="color:green">tabName [[tabs.0.name]]</p> -->
-
+                <!-- This tab has widgets -->
                 <nq-widgets level="[[level]]" widgets="[[tabs.0.widgets]]"></nq-widgets>
-
             </template>
         </template>
     </template>
