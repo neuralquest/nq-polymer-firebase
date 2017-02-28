@@ -12,7 +12,7 @@ yes
 -->
 
 <dom-module id="nq-tree">
-    <template>
+    <template id="t" >
         <style>
             :host {
                 --app-primary-color: #4285f4;
@@ -21,7 +21,9 @@ yes
 
                 --paper-tree-selected-background-color: rgba(0, 0, 200, 0.2);
 
-                --loading-icon-theme: {
+            }
+            #tree {
+                --paper-tree-preicon-theme: {
                     content: '';
                     background:url('loading.svg');
                     background-size:cover;
@@ -39,10 +41,10 @@ yes
         <!--<nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>-->
 
         <paper-tree
-                id="tree1"
-                on-select="nodeSelected"
-                on-toggle="toggleChildren"
-                data=[[doc]]
+                id="tree"
+                on-select="onSelected"
+                on-toggle="onToggle"
+                data='{"name": "Loading..."}'
                 actions='[{
                     "label": "Add Child",
                     "event": "addChild"
@@ -56,6 +58,164 @@ yes
 
     <!--<script src="firebase-as-array.js"></script>-->
 
+    <script>
+        Polymer({
+
+            is: 'nq-tree',
+
+            properties: {
+                level: Number,
+                viewId: String,
+                docId: String,
+                pageId: String,
+                route: String
+            },
+
+            onSelected: function (event){
+                var nodeData = Polymer.dom(event).rootTarget.data;
+                console.log('Selected: ', nodeData.name);
+                if(!nodeData.pageId) return;
+                var pathArr = this.route.path.split('.');
+                var idx = (this.level+1)*4;
+                pathArr[idx] = nodeData.docId;
+                pathArr[idx+1] = nodeData.pageId;
+                var pathArr = pathArr.slice(0, idx+2);
+                var newPath = pathArr.join('.');
+                this.set('route.path', newPath);
+            },
+
+            onToggle:function (event) {
+                var target = event.detail;
+
+                !target.loaded && target.getChildren().forEach(function (child) {
+                    target.loaded = true;
+                    // Fetching children ...
+                    this.fetchNodeChildren(child);
+                }, this);
+            },
+
+            ready:function() {
+                var self = this;
+                // Get the view for viewId that we received from widget
+                //TODO replace with nq-view-data ?
+                firebase.database().ref('/documents/' + self.viewId).on('value', function(snapshot) {
+                    self.viewDoc = snapshot.val();
+                    //if(view === {}) return;
+                    var query = self.viewDoc.rootQuery;
+                    if(!query.where.value) return;
+                    //Get the root doc from the root query.
+                    self.getValueByDotNotation(query.where.value).then(function(docId) {
+                        // Get the root doc
+                        firebase.database().ref('/documents/' + docId).on('value', function(snapshot2) {
+                            var rootDoc = snapshot2.val();
+                            if(rootDoc === {}) return;
+                            if(!rootDoc) return;
+                            // Create the root object for the tree
+                            self.$.tree.data = {
+                                docId: snapshot2.key,
+                                name: rootDoc.title?rootDoc.title:rootDoc.name,
+                                snapshot: snapshot2,
+                                pageId: rootDoc.pageId
+                            };
+                            var icon = self.viewDoc.rootQuery.icon?self.viewDoc.rootQuery.icon:rootDoc.icon;
+                            self.setNodeIcon(self.$.tree.$.root, icon);
+                            self.fetchNodeChildren(self.$.tree.$.root);
+                        });
+                    });
+                });
+            },
+
+            setLoadingState: function (node, enabled) {
+
+                if (enabled) {
+                    node.customStyle['--paper-tree-preicon-theme'] = '\
+                    content: \'\';\
+                    background:url(\'src/loading.svg\');\
+                    background-size:cover;\
+                    position:absolute;\
+                    width:24px;\
+                    height:24px;\
+                    margin-left:-24px;\
+                    ';
+                } else {
+                    node.customStyle['--paper-tree-preicon-theme'] = ';';
+                }
+
+                node.updateStyles();
+            },
+
+            setNodeIcon: function (node, icon) {
+                var ironIcon = node.$$('iron-icon');
+                ironIcon.set('src', icon);
+            },
+
+            fetchNodeChildren: function (node) {
+
+                // Set loading styles
+                this.setLoadingState(node, true);
+
+                // Update the children after a random delay
+                window.setTimeout(function () {
+
+                    node.set('data.children', [
+                        {name: 'Zeus'},
+                        {name: 'Apollo'},
+                        {name: 'Athena'},
+                        {name: 'Poseidon'}
+                    ]);
+
+                    // Reset loading styles
+                    this.setLoadingState(node, false);
+
+                }.bind(this), Math.floor(Math.random() * 2000));
+            },
+
+            getValueByDotNotation: function(path, parentSnapshot) {
+                var self = this;
+                var promiseOrDocId; //Maybe a promise or a string doc id
+                if(path == '$docId') {
+                    promiseOrDocId = this.docId;
+                    // Get the doc id from the path
+                    //var pathArr = self.route.path.split('.');
+                    //promiseOrDocId = pathArr[self.level * 4];
+                }
+                else if(path.startsWith('$parent')) {
+                    if(!parentSnapshot) return null;
+                    // subtract $parent.
+                    var remainingPath = path.substring(8);
+                    promiseOrDocId = self.applyDotNotationToObject(remainingPath, parentSnapshot);
+                }
+                else if(path.startsWith('$get')) {//TODO
+                    debugger;
+                    // Get the doc id from the path
+                    var pathArr = self.route.path.split('.');
+                    var docId = pathArr[self.level * 4];
+                    // Get the parent doc
+                    promiseOrDocId = firebase.database().ref('/documents/' + docId).once('value').then(function(snapshot) {
+                        var parentDoc = snapshot.val();
+                        // subtract $parent.
+                        var remainingPath = path.substring(8);
+                        return self.applyDotNotationToObject(remainingPath, parentDoc);
+                    });
+                }
+                else promiseOrDocId = path;
+                // Always return a promise
+                return Promise.resolve(promiseOrDocId);
+            },
+
+            applyDotNotationToObject: function(path, parentSnapshot) {
+                var current = parentSnapshot.val();
+                var _id = parentSnapshot.key;
+                var pathArr = path.split('.');
+                pathArr.forEach(function(part){
+                    if(part == '_id') current = _id;
+                    else current = current[part];
+                });
+                return current;
+            }
+        });
+    </script>
+    <!--
     <script>
 
         Polymer({
@@ -81,7 +241,7 @@ yes
                     type: String
                 }
             },
-            nodeSelected: function (event){
+            onSelected: function (event){
                 var nodeData = Polymer.dom(event).rootTarget.data;
                 console.log('Selected: ', nodeData.name);
                 if(!nodeData.pageId) return;
@@ -94,7 +254,7 @@ yes
                 this.set('route.path', newPath);
             },
             /*See https://firebase.googleblog.com/2014/05/handling-synchronized-arrays-with-real.html*/
-            toggleChildren: function(event){
+            onToggle: function(event){
                 var self = this;
                 var nodeData = Polymer.dom(event).rootTarget.data;
                 if(nodeData.gotGrandChildren) return;
@@ -255,5 +415,5 @@ yes
                 console.log('view:', newValue);
             }
         });
-    </script>
+    </script>-->
 </dom-module>
