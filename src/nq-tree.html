@@ -115,62 +115,122 @@ yes
                                 docId: snapshot2.key,
                                 name: rootDoc.title?rootDoc.title:rootDoc.name,
                                 snapshot: snapshot2,
-                                pageId: rootDoc.pageId
+                                pageId: rootDoc.pageId,
+                                childrenQuery: self.viewDoc.query
                             };
-                            var icon = self.viewDoc.rootQuery.icon?self.viewDoc.rootQuery.icon:rootDoc.icon;
-                            self.setNodeIcon(self.$.tree.$.root, icon);
+                            self.setNodeIcon(self.$.tree.$.root, self.viewDoc.rootQuery.icon, rootDoc);
                             self.fetchNodeChildren(self.$.tree.$.root);
                         });
                     });
                 });
             },
 
-            setLoadingState: function (node, enabled) {
-
-                if (enabled) {
-                    node.customStyle['--paper-tree-preicon-theme'] = '\
-                    content: \'\';\
-                    background:url(\'src/loading.svg\');\
-                    background-size:cover;\
-                    position:absolute;\
-                    width:24px;\
-                    height:24px;\
-                    margin-left:-24px;\
-                    ';
-                } else {
-                    node.customStyle['--paper-tree-preicon-theme'] = ';';
-                }
-
-                node.updateStyles();
-            },
-
-            setNodeIcon: function (node, icon) {
-                var ironIcon = node.$$('iron-icon');
-                ironIcon.set('src', icon);
-            },
-
             fetchNodeChildren: function (node) {
+
+                var queryArr = node.data.childrenQuery;
+                if(!queryArr) return;
 
                 // Set loading styles
                 this.setLoadingState(node, true);
 
-                // Update the children after a random delay
-                window.setTimeout(function () {
+                queryArr.forEach(function(query){
+                    this.fetchChildrenByQuery(node, query);
+                }.bind(this));
 
-                    node.set('data.children', [
-                        {name: 'Zeus'},
-                        {name: 'Apollo'},
-                        {name: 'Athena'},
-                        {name: 'Poseidon'}
-                    ]);
-
-                    // Reset loading styles
-                    this.setLoadingState(node, false);
-
-                }.bind(this), Math.floor(Math.random() * 2000));
+                /*Promise.all(promisesArr).then(function(resultsArr){
+                    var childrenArr = [];
+                    node.set('data.childrenArr');
+                }.bind(this));*/
             },
 
-            getValueByDotNotation: function(path, parentSnapshot) {
+            fetchChildrenByQuery: function (node, query) {
+                var self = this;
+
+                if('where' in query) {
+                    self.getValueByDotNotation(query.where.value, node.data.docId).then(function(value) {
+                        if('from' in query){
+                            var ref = firebase.database().ref("documents");
+                            if(query.from == 'classes') {
+                                var res = ref.orderByChild('docType').equalTo('class');
+                                res.on("value", function(snapshot){
+                                    self.applyWhereClause(node, snapshot, query, value);
+                                });
+                            }
+                            else {
+                                self.fetchSubClasses(query.from).then(function(subClassesIdArr){
+                                    var ref = firebase.database().ref("documents");
+                                    for(var idx in subClassesIdArr) {
+                                        var res = ref.orderByChild('classId').equalTo(subClassesIdArr[idx]);
+                                        res.on("value", function(snapshot){
+                                            self.applyWhereClause(node, snapshot, query, value);
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            },
+
+            applyWhereClause: function(node, snapshot, query, value){
+                var self = this;
+                //console.log(query.queryName);
+                //console.log(snapshot.val());
+                var docProp = query.where.docProp;
+                var operator = query.where.operator;
+
+                snapshot.forEach(function(childSnap) {
+                    var childVal = childSnap.val();
+                    if(operator == 'eq') {
+                        if(childVal[docProp] == value) {
+                            self.appendChildToNode(node, childSnap);
+                        }
+                    }
+                    else if(operator == 'in') {
+                        debugger;
+                    }
+                });
+            },
+
+            appendChildToNode: function(node, childSnap){
+                var self = this;
+                var childVal = childSnap.val();
+                var children = node.data.children?node.data.children:[];
+                children.push({
+                    docId: childSnap.key,
+                    name: childVal.title ? childVal.title : childVal.name,
+                    snapshot: childSnap,
+                    pageId: childVal.pageId,
+                    childrenQuery: self.viewDoc.query
+                });
+                node.set('data.children', children);
+                node.getChildren().forEach(function(childNode){
+                    self.setNodeIcon(childNode, query.icon, null);
+                });
+                self.setLoadingState(node, false);
+            },
+
+            fetchSubClasses: function(classId){
+                var self = this;
+                var ref = firebase.database().ref("documents");
+                return ref.orderByChild('parentId').equalTo(classId).once("value").then(function(snapshot) {
+                    var subClassPromises = [];
+                    snapshot.forEach(function(subClassSnap) {
+                        var subClassId = subClassSnap.key;
+                        console.log(subClassSnap.key, subClassSnap.val().title);
+                        subClassPromises.push(self.fetchSubClasses(subClassId));
+                    });
+                    return Promise.all(subClassPromises).then(function(subClassIdsArrArr){
+                        var subClassIdsArr = [classId];
+                        subClassIdsArrArr.forEach(function(arr){
+                            subClassIdsArr = subClassIdsArr.concat(arr);
+                        });
+                        return subClassIdsArr;
+                    });
+                });
+            },
+
+            getValueByDotNotation: function(path, parentDocId) {
                 var self = this;
                 var promiseOrDocId; //Maybe a promise or a string doc id
                 if(path == '$docId') {
@@ -180,10 +240,10 @@ yes
                     //promiseOrDocId = pathArr[self.level * 4];
                 }
                 else if(path.startsWith('$parent')) {
-                    if(!parentSnapshot) return null;
+                    promiseOrDocId = parentDocId;
                     // subtract $parent.
-                    var remainingPath = path.substring(8);
-                    promiseOrDocId = self.applyDotNotationToObject(remainingPath, parentSnapshot);
+                    //var remainingPath = path.substring(8);
+                    //promiseOrDocId = self.applyDotNotationToObject(remainingPath, parentSnapshot);
                 }
                 else if(path.startsWith('$get')) {//TODO
                     debugger;
@@ -212,6 +272,39 @@ yes
                     else current = current[part];
                 });
                 return current;
+            },
+
+            setLoadingState: function (node, enabled) {
+
+                if (enabled) {
+                    node.customStyle['--paper-tree-toggle-theme'] = '\
+                    content: \'\';\
+                    background:url(\'src/loading.svg\');\
+                    background-size:cover;\
+                    position:absolute;\
+                    width:24px;\
+                    height:24px;\
+                    margin-left:-24px;\
+                    ';
+                } else {
+                    node.customStyle['--paper-tree-toggle-theme'] = ';';
+                }
+
+                node.updateStyles();
+            },
+
+            setNodeIcon: function (node, queryIcon, doc) {
+                var ironIcon = node.$$('iron-icon');
+
+                if(queryIcon) ironIcon.set('src', queryIcon);// if the query has an icon, use it
+                else if(doc.icon) ironIcon.set('src', doc.icon);// else if the doc has an icon, use it
+                else if(doc.docType == 'object') { // else, if the doc is an object, get the icon from it's class
+                    firebase.database().ref('/documents/' + doc.classId, 'value').once("value").then(function(snapshot) {
+                        var classDoc = snapshot.val();
+                        if(classDoc.icon) ironIcon.set('src', classDoc.icon);
+                    });
+                }
+
             }
         });
     </script>
