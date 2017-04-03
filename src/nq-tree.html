@@ -137,58 +137,51 @@ yes
                     this.fetchChildrenByQuery(node, query);
                 }.bind(this));
 
-                /*Promise.all(promisesArr).then(function(resultsArr){
-                    var childrenArr = [];
-                    node.set('data.childrenArr');
-                }.bind(this));*/
             },
 
             fetchChildrenByQuery: function (node, query) {
                 var self = this;
-
-                if('where' in query) {
-                    self.getValueByDotNotation(query.where.value, node.data.docId).then(function(value) {
-                        if('from' in query){
+                if('from' in query){
+                    var ref = firebase.database().ref("documents");
+                    if(query.from == 'classes') {
+                        var res = ref.orderByChild('docType').equalTo('class');
+                        res.on("value", function(snapshot){
+                            self.applyWhereClause(node, snapshot, query);
+                        });
+                    }
+                    else {
+                        self.fetchSubClasses(query.from).then(function(subClassesIdArr){
                             var ref = firebase.database().ref("documents");
-                            if(query.from == 'classes') {
-                                var res = ref.orderByChild('docType').equalTo('class');
+                            for(var idx in subClassesIdArr) {
+                                //http://stackoverflow.com/questions/38192711/how-to-retrieve-multiple-keys-in-firebase
+                                var res = ref.orderByChild('classId').equalTo(subClassesIdArr[idx]);
                                 res.on("value", function(snapshot){
-                                    self.applyWhereClause(node, snapshot, query, value);
+                                    self.applyWhereClause(node, snapshot, query);
                                 });
                             }
-                            else {
-                                self.fetchSubClasses(query.from).then(function(subClassesIdArr){
-                                    var ref = firebase.database().ref("documents");
-                                    for(var idx in subClassesIdArr) {
-                                        var res = ref.orderByChild('classId').equalTo(subClassesIdArr[idx]);
-                                        res.on("value", function(snapshot){
-                                            self.applyWhereClause(node, snapshot, query, value);
-                                        });
-                                    }
-                                });
-                            }
-                        }
-                    });
+                        });
+                    }
                 }
             },
 
-            applyWhereClause: function(node, snapshot, query, value){
+            applyWhereClause: function(node, snapshot, query){
                 var self = this;
-                //console.log(query.queryName);
-                //console.log(snapshot.val());
-                var docProp = query.where.docProp;
-                var operator = query.where.operator;
-
-                snapshot.forEach(function(childSnap) {
-                    var childVal = childSnap.val();
-                    if(operator == 'eq') {
-                        if(childVal[docProp] == value) {
-                            self.appendChildToNode(node, childSnap);
+                self.queryValue(query, node).then(function(value) {
+                    //console.log('query', query.queryName);
+                    //console.log(snapshot.val());
+                    var docProp = query.where.docProp;
+                    var operator = query.where.operator;
+                    snapshot.forEach(function(childSnap) {
+                        var childVal = childSnap.val();
+                        if(operator == 'eq') {
+                            if(childVal[docProp] == value) {
+                                self.appendChildToNode(node, childSnap);
+                            }
                         }
-                    }
-                    else if(operator == 'in') {
-                        debugger;
-                    }
+                        else if(operator == 'in') {
+                            debugger;
+                        }
+                    });
                 });
             },
 
@@ -228,6 +221,41 @@ yes
                         return subClassIdsArr;
                     });
                 });
+            },
+
+            queryValue: function(query, node) {
+                var self = this;
+                var returnValue = query.where.value;
+                if('where' in query){
+                    var path = query.where.value;
+                    if(path == '$docId') {
+                        returnValue = self.docId;
+                        // Get the doc id from the path
+                        //var pathArr = self.route.path.split('.');
+                        //promiseOrDocId = pathArr[self.level * 4];
+                    }
+                    else if(path.startsWith('$parent')) {
+                        returnValue = node.data.docId;
+                        // subtract $parent.
+                        //var remainingPath = path.substring(8);
+                        //promiseOrDocId = self.applyDotNotationToObject(remainingPath, parentSnapshot);
+                    }
+                    else if(path.startsWith('$get')) {//TODO
+                        debugger;
+                        // Get the doc id from the path
+                        var pathArr = self.route.path.split('.');
+                        var docId = pathArr[self.level * 4];
+                        // Get the parent doc
+                        promiseOrDocId = firebase.database().ref('/documents/' + docId).once('value').then(function(snapshot) {
+                            var parentDoc = snapshot.val();
+                            // subtract $parent.
+                            var remainingPath = path.substring(8);
+                            return self.applyDotNotationToObject(remainingPath, parentDoc);
+                        });
+                    }
+                }
+                // Always return a promise
+                return Promise.resolve(returnValue);
             },
 
             getValueByDotNotation: function(path, parentDocId) {
