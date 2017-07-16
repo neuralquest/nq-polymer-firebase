@@ -1,0 +1,139 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="./nq-tree-node.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+
+<!--
+`<nq-treenode-subquery>` display a tree node with expandable/collapsible capabilities and actions menu.
+
+
+-->
+
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="nq-treenode-subquery">
+    <template>
+        <style>
+
+            li {
+                list-style-type: none;
+            }
+
+        </style>
+
+
+        <firebase-query
+                path="/documents"
+                order-by-child="[[computeOrderByChild(subQuery, docId)]]"
+                equal-to="[[computeEqualTo(subQuery, docId)]]"
+                data="{{children}}">
+        </firebase-query>
+
+        <template is="dom-if" if="{{expanded}}">
+            <template is="dom-repeat" items="{{children}}">
+                <li>
+                    <nq-tree-node id="root"
+                                  data="[[item]]"
+                                  level="[[level]]"
+                                  root-query="[[subQuery]]"
+                                  query="[[query]]"
+                                  doc-id="[[item.$key]]"></nq-tree-node>
+                </li>
+            </template>
+        </template>
+
+
+    </template>
+
+    <script>
+
+        Polymer({
+
+            is: 'nq-treenode-subquery',
+
+            properties: {
+
+                /**
+                 * Data hold by this node (contains the children).
+                 *
+                 * Specific data:
+                 *
+                 * - `data.name`: string representing the node name.
+                 * - `data.icon`: string telling which icon to use (default to 'folder' icon).
+                 * - `data.open`: boolean telling whether the node is expanded or not.
+                 * - `data.children` array containing the children of the node.
+                 */
+                subQuery: {
+                    type: Object,
+                    value: function() {
+                        return null;
+                    }
+                },
+                query: {
+                    type: 'Array',
+                    value: function(){
+                        return [];
+                    },
+                },
+                level: {
+                    type: Number
+                },
+                docId: {
+                    type: "String",
+                    value: null,
+                    observer: 'docIdChanged'
+                },
+                children: {
+                    type: 'Array',
+                    value: function(){
+                        return [];
+                    },
+                    observer: 'childrenChanged'
+                },
+                hasChildren: {
+                    type: "String",
+                    notify: true
+                },
+                expanded: {
+                    type: "Boolean"
+                },
+            },
+            observers: [
+                'childrenLengthChanged(children.length)'
+            ],
+
+            computeOrderByChild: function(subQuery, docId) {
+                if(!docId || !subQuery || !subQuery.where || !subQuery.where.docProp) return null;
+                var value = subQuery.where.docProp;
+                return value;
+            },
+
+            computeEqualTo: function(subQuery, docId) {
+                if(!docId || !subQuery || !subQuery.where || !subQuery.where.value) return null;
+                var value = subQuery.where.value;
+                if(value == '$parent._id') value = this.docId;
+                return value;
+            },
+
+            childrenLengthChanged: function(length){
+                console.log('childrenLengthChanged: ', length);
+                if(length>0) this.hasChildren = 'yes';
+                else if(this.hasChildren === 'loading') this.hasChildren = 'no';
+            },
+
+
+
+            docIdChanged: function(newValue, oldValue){
+                //console.log('docIdChanged: ', newValue);
+            },
+            childrenChanged: function (newValue, oldData) {
+                console.log('childrenChanged: ', newValue);
+                return;
+                if(newValue.length>0) this.hasChildren = 'yes';
+                else if(this.hasChildren === 'loading') this.hasChildren = 'no';
+            }
+            
+
+        });
+
+    </script>
+</dom-module>

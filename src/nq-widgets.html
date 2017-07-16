@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="nq-tree.html">
+<link rel="import" href="nq-tree2.html">
 <link rel="import" href="nq-home.html">
 <link rel="import" href="nq-form.html">
 <link rel="import" href="nq-3d-class-model.html">
@@ -46,7 +47,7 @@ yes
                 </template>
                 <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
                     <nq-tree class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree>
-                    <!--<div>Widget [[widget.displayType]]</div>-->
+                    <!-- <nq-tree2 class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[docId]]"></nq-tree2>-->
                 </template>
                 <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
                     <div>Widget [[widget.displayType]]</div>
