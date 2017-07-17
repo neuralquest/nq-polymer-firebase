@@ -301,7 +301,10 @@ Custom property | Description | Default
             /**
              * Highlights node as the selected node.
              */
-            select: function (event){
+            select: function (e){
+                this.fire("select", this);
+
+
                 //var data = Polymer.dom(event).rootTarget.data;
                 console.log('Selected: ', this.data.name);
                 if(!this.data.pageId) return;
