@@ -1,0 +1,139 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../three-js/three-js.html">
+<link rel="import" href="../three-renderer/three-renderer.html">
+
+<!-- <link rel="import" href="three-viewport-camera-options.html"> -->
+
+<!--
+Three.js viewport element with basic camera controls and control API.
+
+@demo demo/index.html Basic Demo
+-->
+<dom-module id="three-viewport">
+  <link rel="import" type="css" href="three-viewport.css">
+  <template>
+    <three-renderer
+        id="renderer"
+        width="{{_width}}"
+        height="{{_height}}"
+        clear-color="{{clearColor}}"
+        camera="{{camera}}"
+        scene="{{scene}}">
+    </three-renderer>
+    <content></content>
+    <div id="outline"></div>
+  </template>
+</dom-module>
+<script>
+(function () {
+
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(30, 1, 0.1, 10000);
+  camera.position.set(300, 300, 300);
+  camera._target = new THREE.Vector3();
+  camera.lookAt(camera._target);
+
+  Polymer({
+    is: 'three-viewport',
+    properties: {
+      width: {
+        type: Number,
+        value: 300,
+        observer: '_resizeJob'
+      },
+      height: {
+        type: Number,
+        value: 150,
+        observer: '_resizeJob'
+      },
+      scene: {
+        type: THREE.Scene,
+        value: scene,
+        observer: 'renderJob'
+      },
+      camera: {
+        type: THREE.Camera,
+        value: camera,
+        observer: 'renderJob'
+      },
+      clearColor: {
+        value: '#222222'
+      },
+      showHelpers: {
+        type: Boolean,
+        value: false
+      },
+      // showCompass: {
+      //   type: Boolean,
+      //   value: false,
+      // },
+      // compassSize: {
+      //   type: Number,
+      //   value: 30
+      // }
+    },
+    hostAttributes: {
+      tabindex: 0,
+      oncontextmenu: "return false;"
+    },
+    listeners: {
+      'focus': 'render',
+      'touchmove': '_preventDefaultAction',
+      'mousemove': '_preventDefaultAction'
+    },
+    created: function () {
+      this._render = this.render.bind(this);
+    },
+    ready: function() {
+      // this._compass = new THREE.CompassHelper();
+
+      this.$.renderer.postRender = this.postRender.bind(this);
+    },
+    postRender: function() {
+      if (this.showHelpers) {
+        if (this.scene._helpers) {
+          this.scene._helpers.traverse(function (child) {
+            if (child.update) {
+              child.update(this.camera);
+            }
+          }.bind(this));
+          this.$.renderer.renderer.render(this.scene._helpers, this.camera);
+        }
+
+        // if (this.showCompass) {
+        //   this.$.renderer.renderer.setViewport(
+        //     this._width - this.compassSize,
+        //     this._height - this.compassSize,
+        //     this.compassSize, this.compassSize);
+        //   this._compass.update(this.camera);
+        //   this.$.renderer.renderer.render(this._compass, this._compass.camera);
+        //   this.$.renderer.renderer.setViewport(0, 0, this._width, this._height);
+        // }
+      }
+    },
+    render: function() {
+      this.$.renderer.renderJob();
+    },
+    renderJob: function() {
+      this.debounce('three-viewport-render-job', function() {
+        requestAnimationFrame(this._render);
+      }.bind(this));
+    },
+    _resizeJob: function () {
+      this.debounce('three-viewport-resize', this._resize);
+    },
+    _resize: function() {
+      this._width = Math.ceil(this.width);
+      this._height = Math.ceil(this.height);
+      this.style.width = this.width + 'px';
+      this.style.height = this.height + 'px';
+      this.renderJob();
+    },
+    _preventDefaultAction: function (event) {
+      event.preventDefault();
+    }
+  });
+
+}());
+</script>

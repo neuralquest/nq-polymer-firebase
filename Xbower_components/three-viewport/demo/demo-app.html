@@ -1,0 +1,41 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../../io-object/io-object.html">
+<link rel="import" href="../three-viewport.html">
+
+<dom-module id="demo-app">
+  <template>
+
+    <three-viewport
+      id="viewport1"
+      width="400"
+      height="300"
+      show-helpers
+      show-grid
+      show-axis
+      show-compass
+      scene="{{scene}}">
+    </three-viewport>
+    <io-object id="inspector1"
+      expanded
+      on-io-value-set="_valueSet">
+    </io-object>
+
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'demo-app',
+    ready: function () {
+      var geometry = new THREE.BoxGeometry( 20, 20, 20 );
+      var material = new THREE.MeshNormalMaterial();
+
+      var mesh = new THREE.Mesh( geometry, material );
+      this.$.viewport1.scene.add( mesh );
+
+      this.$.inspector1.value = this.$.viewport1;
+    },
+    _valueSet: function () {
+      // this.$.viewport1.render();
+    }
+  });
+</script>

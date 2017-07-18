@@ -1,0 +1,39 @@
+<link rel="import" href="../../polymer/polymer.html">
+<link rel="import" href="../io-tooltip.html">
+
+<dom-module id="demo-app">
+  <template>
+
+    <span class="demo">
+      <span>right</span>
+      <io-tooltip width="160" side="right" message="Right tooltip."></io-tooltip>
+    </span>
+
+    <span class="demo">
+      <span>bottom</span>
+      <io-tooltip width="160" side="bottom" message="Bottom tooltip."></io-tooltip>
+    </span>
+
+    <span class="demo">
+      <span>top</span>
+      <io-tooltip width="160" side="top" message="Top tooltip.">
+      </io-tooltip>
+    </span>
+
+    <span class="demo">
+      <span>left</span>
+      <io-tooltip width="160" side="left" message="Left tooltip.">
+      </io-tooltip>
+    </span>
+
+    <span class="demo">
+      <span>center</span>
+      <io-tooltip width="160" side="center" message="Center tooltip.">
+      </io-tooltip>
+    </span>
+
+  </template>
+</dom-module>
+<script>
+  Polymer({ is: 'demo-app' });
+</script>

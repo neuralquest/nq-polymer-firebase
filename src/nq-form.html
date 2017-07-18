@@ -2,13 +2,16 @@
 <link rel="import" href="nq-icons.html">
 <link rel="import" href="nq-view-data.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
-<link rel="import" href="../bower_components/polymer-quill/polymer-quill.html">
-<link rel="import" href="../bower_components/polymer-quill/polymer-quill-html-render.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-layout.html">
+<link rel="import" href="../bower_components/vaadin-text-field/vaadin-text-field.html">
+
+
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill-html-render.html">
 
 <!--
 `my-blank-element`
@@ -52,84 +55,102 @@ yes
                 data="{{doc}}">
         </firebase-document>
 
-        <template is="dom-repeat" doc={{doc}} items="{{viewPropArr}}" as="property">
-            <div>
-            <!-- Input -->
-            <template is="dom-if" if="[[_typeStringHtml(property.attrProps)]]">
-                <template is="dom-if" if="[[readOnly]]">
-                    <polymer-quill-html-render
-                            id="quilDoc"
-                            class="backgroundClass"
-                            content="[[property.value]]">
-                    </polymer-quill-html-render>
-                </template>
-                <template is="dom-if" if="[[!readOnly]]">
-                    <!-- https://github.com/quilljs/quill/issues/904 -->
-                    <!--<polymer-quill
-                            id="quilEditDoc"
-                            class="full"
-                            store-as="html"
-                            toolbar-type="full"
-                            show-html
-                            show-results
-                            content="<h1>hi</h1>">
-                    </polymer-quill>-->
-                </template>
-            </template>
-            <template is="dom-if" if="[[_typeStringBase64(property.attrProps)]]">
-                <img src="{{property.value}}"
-                     width="16px"
-                     height="16px">
-            </template>
-            <template is="dom-if" if="[[_typeStringWebGL(property.attrProps)]]">
-                <div>{{property.value}}</div>
-            </template>
-            <template is="dom-if" if="[[_typeStringDate(property.attrProps)]]">
-                <div>{{property.value}}</div>
-            </template>
-            <template is="dom-if" if="[[_typeStringUri(property.attrProps)]]">
-                <div>{{property.value}}</div>
-            </template>
-            <template is="dom-if" if="[[_typeStringEnum(property.attrProps)]]">
-                <paper-listbox selected="{{property.value}}">
-                    <template is="dom-repeat" items="[[property.attrProps.enum]]" as="enum">
-                        <paper-item>[[enum]]</paper-item>
+        <vaadin-form-layout>
+            <template is="dom-repeat" doc={{doc}} items="{{viewPropArr}}" as="property">
+                <div>
+                <!-- Input -->
+                <template is="dom-if" if="[[_typeStringHtml(property.attrProps)]]">
+                    <template is="dom-if" if="[[readOnly]]">
+                        <polymer-quill-html-render
+                                id="quilDoc"
+                                class="backgroundClass"
+                                content="[[property.value]]">
+                        </polymer-quill-html-render>
                     </template>
-                </paper-listbox>
+                    <template is="dom-if" if="[[!readOnly]]">
+                        <!-- https://github.com/quilljs/quill/issues/904 -->
+                        <!--<polymer-quill
+                                id="quilEditDoc"
+                                class="full"
+                                store-as="html"
+                                toolbar-type="full"
+                                show-html
+                                show-results
+                                content="<h1>hi</h1>">
+                        </polymer-quill>-->
+                    </template>
+                </template>
+                <template is="dom-if" if="[[_typeStringBase64(property.attrProps)]]">
+                    <img src="{{property.value}}"
+                         width="16px"
+                         height="16px">
+                </template>
+                <template is="dom-if" if="[[_typeStringWebGL(property.attrProps)]]">
+                    <div>{{property.value}}</div>
+                </template>
+                <template is="dom-if" if="[[_typeStringDate(property.attrProps)]]">
+                    <div>{{property.value}}</div>
+                </template>
+                <template is="dom-if" if="[[_typeStringUri(property.attrProps)]]">
+                    <div>{{property.value}}</div>
+                </template>
+                <template is="dom-if" if="[[_typeStringEnum(property.attrProps)]]">
+                    <paper-listbox selected="{{property.value}}">
+                        <template is="dom-repeat" items="[[property.attrProps.enum]]" as="enum">
+                            <paper-item>[[enum]]</paper-item>
+                        </template>
+                    </paper-listbox>
+                </template>
+                <template is="dom-if" if="[[_typeStringQuery(property.attrProps)]]">
+                    <div>Query</div>
+                </template>
+
+                <!--String-->
+                <template is="dom-if" if="[[_typeString(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            {{property.value}}
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!--Number-->
+                <template is="dom-if" if="[[_typeNumber(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            {{property.value}}
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"
+                                   pattern="[0-9]*"
+                                   prevent-invalid-input></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+
+                <template is="dom-if" if="[[_typeBoolean(property.attrProps)]]">
+                    <paper-checkbox readonly="[[readOnly]]"
+                                    checked="{{property.value}}">
+                                    [[property.attrProps.title]]
+                    </paper-checkbox>
+                </template>
+                <template is="dom-if" if="[[_typeArray(property.attrProps)]]">
+                    <div>{{property.value}}</div>
+                </template>
+                <template is="dom-if" if="[[_typeObject(property.attrProps)]]">
+                    <div>{{property.value}}</div>
+                </template>
+                </div>
             </template>
-            <template is="dom-if" if="[[_typeStringQuery(property.attrProps)]]">
-                <div>Query</div>
-            </template>
-            <template is="dom-if" if="[[_typeString(property.attrProps)]]">
-                <paper-input label="[[property.attrProps.title]]"
-                             type="text"
-                             readonly="[[readOnly]]"
-                             always-float-label
-                             value="{{property.value}}">
-                </paper-input>
-            </template>
-            <template is="dom-if" if="[[_typeNumber(property.attrProps)]]">
-                <paper-input label="[[property.attrProps.title]]"
-                             type="number"
-                             readonly="[[readOnly]]"
-                             always-float-label
-                             value="{{property.value}}">
-                </paper-input>
-            </template>
-            <template is="dom-if" if="[[_typeBoolean(property.attrProps)]]">
-                <paper-checkbox readonly="[[readOnly]]"
-                                checked="{{property.value}}">
-                                [[property.attrProps.title]]
-                </paper-checkbox>
-            </template>
-            <template is="dom-if" if="[[_typeArray(property.attrProps)]]">
-                <div>{{property.value}}</div>
-            </template>
-            <template is="dom-if" if="[[_typeObject(property.attrProps)]]">
-                <div>{{property.value}}</div>
-            </template>
-            </div>
-        </template>
+        </vaadin-form-layout>
 
         <p>HI</p>
         <p>HI</p>
@@ -150,9 +171,9 @@ yes
                 level: Number,
                 viewId: String,
                 docId: String,
-                readOnly:{
+                editMode:{
                     type: Boolean,
-                    value: true,
+                    value: false,
                     //observer: 'dataChanged'
                 },
                 viewDoc:{
@@ -180,7 +201,11 @@ yes
                 return arr;
             },
             doEdit: function(e){
-                this.readOnly=!this.readOnly;
+                this.editMode=!this.editMode;
+            },
+            calculateReadonly: function(readOnly, editMode){
+                if(readOnly) return true;
+                return !editMode;
             },
             _typeStringHtml: function(attrProps) {
                 return (

@@ -1,0 +1,38 @@
+{
+  "name": "io-input",
+  "version": "1.6.0",
+  "homepage": "https://github.com/arodic/io-input",
+  "authors": [
+    "Aki Rodic <aleksandar.xyz@gmail.com>"
+  ],
+  "description": "Custom HTML element that can be used as input/output for string and number variables",
+  "main": "io-input.html",
+  "keywords": [
+    "io-input",
+    "input",
+    "output",
+    "i/o",
+    "io",
+    "ui",
+    "polymer",
+    "element",
+    "web-components"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.6.1",
+    "io-styles": "arodic/io-styles#^1.6.0"
+  },
+  "_release": "1.6.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.6.0",
+    "commit": "e0fdc4dc02750330006fd5a35c38af750222be7a"
+  },
+  "_source": "https://github.com/arodic/io-input.git",
+  "_target": "^1.6.0",
+  "_originalSource": "arodic/io-input"
+}

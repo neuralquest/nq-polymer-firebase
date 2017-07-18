@@ -1,6 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-tree/paper-tree.html">
-<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="nq-tree-node.html">
 
@@ -22,17 +20,7 @@ yes
                 --paper-tree-selected-background-color: rgba(0, 0, 200, 0.2);
 
             }
-            #tree {
-                --paper-tree-preicon-theme: {
-                    content: '';
-                    background:url('loading.svg');
-                    background-size:cover;
-                    position:absolute;
-                    width:24px;
-                    height:24px;
-                    margin-left:-24px;
-                };
-            }
+
 
         </style>
 
@@ -50,8 +38,9 @@ yes
         <nq-tree-node id="root"
                       data="[[data]]"
                       level="[[level]]"
-                      root-query="[[view.rootQuery]]"
-                      query="[[view.query]]"
+                      node-query="[[view.rootQuery]]"
+                      children-query="[[view.query]]"
+                      view-query="[[view.query]]"
                       doc-id="[[getDocId(view)]]"></nq-tree-node>
 
     </template>

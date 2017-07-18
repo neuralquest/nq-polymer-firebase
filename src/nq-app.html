@@ -48,10 +48,10 @@ yes
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
-        <template is="dom-if" if="[[pageIdComputed]]">
+        <template is="dom-if" if="[[computePageId(level, route, pageId)]]">
             <div class="layout vertical fit">
 
-                <nq-layout class="flex" level="[[level]]" page-id="[[pageIdComputed]]"></nq-layout>
+                <nq-layout class="flex" level="[[level]]" page-id="[[computePageId(level, route, pageId)]]"></nq-layout>
                 <paper-toolbar>
                     <span>
                         <paper-button raised on-tap="login" hidden$="[[user]]">Sign in</paper-button>
@@ -89,10 +89,6 @@ yes
                 route: {
                     type: String
                 },
-                pageIdComputed: {
-                    type: String,
-                    computed: 'computePageId(level, route, pageId)'
-                },
                 user: {
                     type: Object
                 },
@@ -108,11 +104,12 @@ yes
                 }
             },
             computePageId(level, route, pageId){
+                if(!route) return null;
                 //console.log('computePageId');
                 if(pageId) return pageId;
-                if(!this.route.path){
-                    this.set('route.path', '.575d4c3f2cf3d6dc3ed83146...575d4c3f2cf3d6dc3ed83148.575d4c3f2cf3d6dc3ed83147');
-                }
+                //if(!route.path){
+                //    this.set('route.path', '.575d4c3f2cf3d6dc3ed83146...575d4c3f2cf3d6dc3ed83148.575d4c3f2cf3d6dc3ed83147');
+                //}
                 var pathArr = route.path.split('.');
                 return pathArr[level*4+1];
             },

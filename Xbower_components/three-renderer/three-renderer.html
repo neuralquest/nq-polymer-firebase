@@ -1,0 +1,125 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../three-js/three-js.html">
+
+<script src="WebGLSharedRenderer.js"></script>
+<!--
+Three.js viewport element with basic camera controls and tool API.
+
+@demo demo/index.html Basic Demo
+-->
+<dom-module id="three-renderer">
+  <link rel="import" type="css" href="three-renderer.css">
+  <template>
+    <content></content>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'three-renderer',
+    properties: {
+      /**
+       * Scene to be rendered in this viewport.
+       */
+      scene: {
+        type: THREE.Scene,
+        observer: 'renderJob'
+      },
+      /**
+       * Camera to be rendered with.
+       */
+      camera: {
+        type: THREE.PerspectiveCamera,
+        observer: 'renderJob'
+      },
+      /**
+       * Background color
+       * @default new THREE.Color(0xCCCCCC)
+       */
+      clearColor: {
+        value: function() { return new THREE.Color(0x666666); },
+        type: THREE.Color,
+        observer: 'renderJob'
+      },
+      /**
+       * Viewport width
+       */
+      width: {
+        value: 300,
+        type: Number,
+        observer: '_resizeJob'
+      },
+      /**
+       * Viewport height
+       */
+      height: {
+        value: 300,
+        type: Number,
+        observer: '_resizeJob'
+      },
+      // Optional function to be run before and after render step.
+      preRender: {
+        type: Function
+      },
+      // Optional function to be run before and after render step.
+      postRender: {
+        type: Function
+      }
+    },
+    hostAttributes: {
+      oncontextmenu: "return false;"
+    },
+    ready: function() {
+      this.renderer = new THREE.WebGLSharedRenderer({
+        antialias: false
+      });
+      this.renderer.autoClear = false;
+    	this.renderer.autoClearColor = false;
+    	this.renderer.autoClearDepth = false;
+    	this.renderer.autoClearStencil = false;
+      this.renderer.gammaInput = true;
+      this.renderer.gammaOutput = true;
+      this.appendChild(this.renderer.domElement);
+      this.renderer.domElement.classList.add('three-renderer');
+      this._render = this.render.bind(this);
+    },
+    render: function() {
+      if (!this.rendered) {
+        this.renderer.setClearColor(this.clearColor);
+        this.renderer.clear();
+        if (this.preRender) this.preRender();
+
+        if (this.camera instanceof THREE.PerspectiveCamera) {
+          this.camera.aspect = this.width / this.height;
+        }
+        if (this.camera instanceof THREE.OrthographicCamera) {
+          var a = this.width / this.height;
+          var h = this.camera.top - this.camera.bottom;
+          this.camera.top = h / 2;
+          this.camera.bottom = - h / 2;
+          this.camera.right = h / 2 * a;
+          this.camera.left = - h / 2 * a;
+        }
+        this.camera.updateProjectionMatrix();
+
+        this.renderer.render(this.scene, this.camera);
+        if (this.postRender) this.postRender();
+        this.rendered = true;
+        requestAnimationFrame(function() { this.rendered = false; }.bind(this));
+      }
+    },
+    renderJob: function() {
+      this.debounce('three-renderer-render-job', function() {
+        requestAnimationFrame(this._render);
+      }.bind(this), 1);
+    },
+    _resize: function() {
+      this.style.width = Math.floor(this.width) + 'px';
+      this.style.height = Math.floor(this.height) + 'px';
+      this.renderer.setSize(Math.floor(this.width), Math.floor(this.height));
+      this.renderJob();
+    },
+    _resizeJob: function() {
+      this.debounce('three-renderer-resize-job', this._resize, 1);
+    }
+  });
+</script>

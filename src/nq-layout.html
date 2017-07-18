@@ -73,7 +73,7 @@ yes
                     <!-- Splitter -->
                     <iron-splitter direction="left" ></iron-splitter>
                     <!-- Main content -->
-                    <nq-tabs class="flex" level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
+                    <nq-tabs class="flex" level="[[computeLevelInc(level)]]" page-id="[[computePageIdInc(level, route)]]"></nq-tabs>
                 </div>
             </div>
         </template>
@@ -96,16 +96,6 @@ yes
                 level: {
                     type: Number,
                 },
-                levelInc: {
-                    type: Number,
-                    computed: 'computeLevelInc(level)'
-                },
-                pageIdInc: {
-                    type: String,
-                    value: null,
-                    computed: 'computePageIdInc(level, route)'
-                    //observer: '_pageChanged'
-                },
                 page: {
                     type: Array,
                     value: function() { return []; },
@@ -117,6 +107,7 @@ yes
                 return level+1;
             },
             computePageIdInc(level, route){
+                if(!route) return null;
                 //console.log('computePageIdInc');
                 var pathArr = route.path.split('.');
                 var idx = (level+1)*4+1;

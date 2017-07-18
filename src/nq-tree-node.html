@@ -124,7 +124,7 @@ Custom property | Description | Default
         <div class="node-container">
             <div class="node-row">
                 <span class$="{{computeClass(hasChildren,expanded)}}" on-click="toggleChildren"></span>
-                <iron-icon class="node-icon" src$="{{_computeIcon(rootQuery)}}" on-click="select"></iron-icon>
+                <iron-icon class="node-icon" src$="{{_computeIcon(nodeQuery)}}" on-click="select"></iron-icon>
                 <span class="node-name" on-click="select">{{_computeName(data)}}</span>
                 <template is="dom-if" if="{{actions}}">
                     <paper-menu-button id="actions">
@@ -138,19 +138,18 @@ Custom property | Description | Default
                 </template>
             </div>
 
-                <ul>
-                    <template is="dom-repeat" items="{{query}}" as="subQuery">
-                        <div>
-                            <nq-treenode-subquery query="[[query]]"
-                                                  sub-query="[[subQuery]]"
-                                                  level="[[level]]"
-                                                  doc-id="[[docId]]"
-                                                  has-children="{{hasChildren}}"
-                                                  expanded="[[expanded]]"></nq-treenode-subquery>
-                        </div>
-                    </template>
-                </ul>
-            </template>
+            <ul>
+                <template is="dom-repeat" items="{{childrenQuery}}" as="subQuery">
+                    <div>
+                        <nq-treenode-subquery view-query="[[viewQuery]]"
+                                              sub-query="[[subQuery]]"
+                                              level="[[level]]"
+                                              doc-id="[[docId]]"
+                                              has-children="{{hasChildren}}"
+                                              expanded="[[expanded]]"></nq-treenode-subquery>
+                    </div>
+                </template>
+            </ul>
         </div>
 
 
@@ -184,19 +183,25 @@ Custom property | Description | Default
                 level: {
                     type: Number
                 },
-                rootQuery: {
+                nodeQuery: {
                     type: Object,
                     value: function() {
                         return null;
                     },
-                    observer:'rootQueryChanged'
+                    observer:'nodeQueryChanged'
                 },
-                query: {
+                childrenQuery: {
                     type: Array,
                     value: function() {
                         return null;
                     },
-                    observer:'queryChanged'
+                    observer:'childrenQueryChanged'
+                },
+                viewQuery: {
+                    type: Array,
+                    value: function() {
+                        return null;
+                    }
                 },
                 hasChildren: {
                     type: String,
@@ -268,9 +273,9 @@ Custom property | Description | Default
              * @param {string=folder} an icon name.
              * @return {string} the computed icon name.
              */
-            _computeIcon: function(rootQuery) {
-                if(!rootQuery) return 'folder';
-                if(rootQuery.icon) return rootQuery.icon;
+            _computeIcon: function(nodeQuery) {
+                if(!nodeQuery) return 'folder';
+                if(nodeQuery.icon) return nodeQuery.icon;
                 else if (this.data.icon) return this.data.icon;
                 return 'folder';
             },
@@ -307,11 +312,12 @@ Custom property | Description | Default
 
                 //var data = Polymer.dom(event).rootTarget.data;
                 console.log('Selected: ', this.data.name);
-                if(!this.data.pageId) return;
+                //if(!this.data.pageId) return;
                 var pathArr = this.route.path.split('.');
                 var idx = (this.level+1)*4;
-                pathArr[idx] = this.data.docId;
-                pathArr[idx+1] = this.data.pageId;
+                pathArr[idx] = this.docId;
+                if(this.nodeQuery.pageId) pathArr[idx+1] = this.nodeQuery.pageId;
+                else if(this.data.pageId) pathArr[idx+1] = this.data.pageId;
                 var pathArr = pathArr.slice(0, idx+2);
                 var newPath = pathArr.join('.');
                 this.set('route.path', newPath);
@@ -342,13 +348,13 @@ Custom property | Description | Default
                 //if(!newValue) return;
                 //console.log('dataChanged tree-node', newValue);
             },
-            queryChanged:function(newValue, oldvalue){
+            childrenQueryChanged:function(newValue, oldvalue){
                 if(!newValue) return;
-                //console.log('queryChanged', newValue);
+                //console.log('childrenQueryChanged', newValue);
             },
-            rootQueryChanged:function(newValue, oldvalue){
+            nodeQueryChanged:function(newValue, oldvalue){
                 if(!newValue) return;
-                //console.log('rootQueryChanged', newValue);
+                //console.log('nodeQueryChanged', newValue);
             },
         });
 

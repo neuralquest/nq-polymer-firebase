@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+  <head>
+
+    <title>io-tooltip tests</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../test-fixture/test-fixture-mocha.js"></script>
+
+    <link rel="import" href="../../test-fixture/test-fixture.html">
+    <link rel="import" href="../io-tooltip.html">
+
+  </head>
+  <body>
+
+    <test-fixture id="tooltip">
+      <template>
+        <io-tooltip message="tooltip message"></io-tooltip>
+      </template>
+    </test-fixture>
+
+    <script>
+
+      suite('<io-tooltip>', function() {
+        var tooltip;
+
+        setup(function() {
+          tooltip = fixture('tooltip');
+        });
+
+        test('io-tooltip should create io-tooltip-bubble with message', function(done) {
+          tooltip.addEventListener('io-tooltip', function(event) {
+            assert.equal(event.detail.message, 'tooltip message', 'io-tooltip message');
+            assert.equal(event.detail.persist, tooltip.persist, 'io-tooltip message persist');
+            done();
+          });
+          tooltip._showTooltip();
+        });
+
+        test('io-tooltip-bubble should display message', function(done) {
+          setTimeout(function(event) {
+            var bubble = document.querySelector('io-tooltip-bubble');
+            assert.equal(tooltip.message, bubble.message, 'io-tooltip-bubble message');
+            assert.equal(bubble.$.message.innerHTML, bubble.message, 'io-tooltip-bubble message');
+            done();
+          }, 100);
+          tooltip._showTooltip();
+        });
+
+        test('io-tooltip should broadcast empty io-tooltip message when cleared and io-tooltip-bubble should clear', function(done) {
+          tooltip.addEventListener('io-tooltip', function(event) {
+            assert.equal(event.detail.message, null, 'clear io-tooltip message');
+            setTimeout(function(event) {
+              var bubble = document.querySelector('io-tooltip-bubble');
+              assert.equal(bubble.$.message.innerHTML, '', 'io-tooltip-bubble message');
+              done();
+            }, 100);
+          });
+          tooltip._hideTooltip();
+        });
+
+
+      });
+
+    </script>
+
+  </body>
+</html>

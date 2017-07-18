@@ -33,8 +33,9 @@
                     <nq-tree-node id="root"
                                   data="[[item]]"
                                   level="[[level]]"
-                                  root-query="[[subQuery]]"
-                                  query="[[query]]"
+                                  node-query="[[subQuery]]"
+                                  children-query="[[computeChildrenQuery(viewQuery)]]"
+                                  view-query="[[viewQuery]]"
                                   doc-id="[[item.$key]]"></nq-tree-node>
                 </li>
             </template>
@@ -67,7 +68,7 @@
                         return null;
                     }
                 },
-                query: {
+                viewQuery: {
                     type: 'Array',
                     value: function(){
                         return [];
@@ -112,20 +113,31 @@
                 if(value == '$parent._id') value = this.docId;
                 return value;
             },
-
+            computeChildrenQuery: function(viewQuery) {
+                //if(this.subQuery.join) [this.subQuery.join];
+                if(this.subQuery.recursive){
+                    if(this.subQuery.recursive === 'schemaQuery') return viewQuery;
+                    return this.findChildrenQueryByName(this.subQuery.recursive)
+                }
+                return viewQuery;
+            },
             childrenLengthChanged: function(length){
-                console.log('childrenLengthChanged: ', length);
+                //console.log('childrenLengthChanged: ', length);
                 if(length>0) this.hasChildren = 'yes';
                 else if(this.hasChildren === 'loading') this.hasChildren = 'no';
             },
-
+            findChildrenQueryByName: function(queryName){
+                return this.viewQuery.find(function(subQuery){
+                    return(subQuery.queryName === queryName);
+                });
+            },
 
 
             docIdChanged: function(newValue, oldValue){
                 //console.log('docIdChanged: ', newValue);
             },
             childrenChanged: function (newValue, oldData) {
-                console.log('childrenChanged: ', newValue);
+                //console.log('childrenChanged: ', newValue);
                 return;
                 if(newValue.length>0) this.hasChildren = 'yes';
                 else if(this.hasChildren === 'loading') this.hasChildren = 'no';
