@@ -7,12 +7,12 @@
 <link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-layout.html">
 <link rel="import" href="../bower_components/vaadin-text-field/vaadin-text-field.html">
 
-
+<!--
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/polymer-quill/polymer-quill.html">
 <link rel="import" href="../bower_components/polymer-quill/polymer-quill-html-render.html">
-
+-->
 <!--
 `my-blank-element`
 yes
@@ -41,10 +41,7 @@ yes
             .backgroundClass {
                 --polymer-quill-html-background-color: transparent;
             }
-            polymer-quill.full {
-                --polymer-quill-editor-max-height: 600px;
-                --polymer-quill-editor-min-height: 200px;
-            }
+           
 
         </style>
 
@@ -163,32 +160,35 @@ yes
     </template>
 
     <script>
-        Polymer({
+        class NqForm extends Polymer.Element {
+            static get is() {
+                return 'nq-form';
+            }
 
-            is: 'nq-form',
-
-            properties: {
-                level: Number,
-                viewId: String,
-                docId: String,
-                editMode:{
-                    type: Boolean,
-                    value: false,
-                    //observer: 'dataChanged'
-                },
-                viewDoc:{
-                    type:Object,
-                    value: function() { return {}; },
-                    //observer: 'dataChanged'
-                },
-                viewPropArr:{
-                    type: Array,
-                    value: function() { return []; },
-                    computed: '_toArray(viewDoc, doc)',
-                    //observer: 'dataChanged'
-                }
-            },
-            _toArray: function(viewDoc, doc) {
+            static get properties() {
+                return {
+                    level: Number,
+                    viewId: String,
+                    docId: String,
+                    editMode:{
+                        type: Boolean,
+                        value: false,
+                        //observer: 'dataChanged'
+                    },
+                    viewDoc:{
+                        type:Object,
+                        value() { return {}; },
+                        //observer: 'dataChanged'
+                    },
+                    viewPropArr:{
+                        type: Array,
+                        value() { return []; },
+                        computed: '_toArray(viewDoc, doc)',
+                        //observer: 'dataChanged'
+                    }
+                };
+            }
+            _toArray(viewDoc, doc) {
                 if(!viewDoc.properties) return [];
                 var obj = viewDoc.properties;
                 var arr =  Object.keys(obj).map(function(key) {
@@ -199,79 +199,80 @@ yes
                     };
                 });
                 return arr;
-            },
-            doEdit: function(e){
+            }
+            doEdit(e){
                 this.editMode=!this.editMode;
-            },
-            calculateReadonly: function(readOnly, editMode){
+            }
+            calculateReadonly(readOnly, editMode){
                 if(readOnly) return true;
                 return !editMode;
-            },
-            _typeStringHtml: function(attrProps) {
+            }
+            _typeStringHtml(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 attrProps.media &&
                 attrProps.media.mediaType === 'text/html');
-            },
-            _typeStringBase64: function(attrProps) {
+            }
+            _typeStringBase64(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 attrProps.media &&
                 attrProps.media.binaryEncoding === 'base64' &&
                 attrProps.media.type === 'image/png');
-            },
-            _typeStringWebGL: function(attrProps) {
+            }
+            _typeStringWebGL(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 attrProps.media &&
                 attrProps.media.type === 'image/webgl');
-            },
-            _typeStringDate: function(attrProps) {
+            }
+            _typeStringDate(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 attrProps.format &&
                 attrProps.format === 'date-time');
-            },
-            _typeStringUri: function(attrProps) {
+            }
+            _typeStringUri(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 attrProps.format &&
                 attrProps.format === 'uri');
-            },
-            _typeStringEnum: function(attrProps) {
+            }
+            _typeStringEnum(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 attrProps.enum);
-            },
-            _typeStringQuery: function(attrProps) {
+            }
+            _typeStringQuery(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 attrProps.query);
-            },
-            _typeString: function(attrProps) {
+            }
+            _typeString(attrProps) {
                 return (
                 attrProps.type === 'string' &&
                 !attrProps.media &&
                 !attrProps.format &&
                 !attrProps.enum &&
                 !attrProps.query );
-            },
-            _typeNumber: function(objType) {
+            }
+            _typeNumber(objType) {
                 return objType==='number';
-            },
-            _typeBoolean: function(objType) {
+            }
+            _typeBoolean(objType) {
                 return objType==='boolean';
-            },
-            _typeArray: function(objType) {
+            }
+            _typeArray(objType) {
                 return objType==='array';
-            },
-            _typeObject: function(objType) {
+            }
+            _typeObject(objType) {
                 return objType==='object';
-            },
+            }
 
-            dataChanged: function(newValue, oldValue) {
+            dataChanged(newValue, oldValue) {
                 console.log('viewDoc:', oldValue, 'to', newValue);
             }
-        });
+        }
+        window.customElements.define(NqForm.is, NqForm);
     </script>
 </dom-module>

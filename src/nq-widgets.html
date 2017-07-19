@@ -1,11 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="nq-tree.html">
-<link rel="import" href="nq-tree2.html">
 <link rel="import" href="nq-home.html">
 <link rel="import" href="nq-form.html">
 <link rel="import" href="nq-3d-class-model.html">
-<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <!--
 `my-blank-element`
@@ -70,50 +69,56 @@ yes
     </template>
 
     <script>
-        Polymer({
+        class NqWidgets extends Polymer.Element {
+            static get is() {
+                return 'nq-widgets';
+            }
 
-            is: 'nq-widgets',
+            static get properties() {
+                return {
+                    level: Number,
+                    widgets: {
+                        type: Array,
+                        value () {
+                            return [];
+                        },
+                        //observer: 'dataChanged'
+                    }
+                };
+            }
 
-            properties: {
-                level: Number,
-                widgets: {
-                    type: Array,
-                    value: function() { return []; },
-                    //observer: 'dataChanged'
-                }
-            },
-
-            _typeDocument: function(displayType) {
+            _typeDocument(displayType) {
                 return displayType==='Document';
-            },
-            _typeTree: function(displayType) {
+            }
+            _typeTree(displayType) {
                 return displayType==='Tree';
-            },
-            _typeTable: function(displayType) {
+            }
+            _typeTable(displayType) {
                 return displayType==='Table';
-            },
-            _type3dClassModel: function(displayType) {
+            }
+            _type3dClassModel(displayType) {
                 return displayType==='3D Class Model';
-            },
-            _typeProcessModel: function(displayType) {
+            }
+            _typeProcessModel(displayType) {
                 return displayType==='Process Model';
-            },
-            _typeForm: function(displayType) {
+            }
+            _typeForm(displayType) {
                 return displayType==='Form';
-            },
-            _typeHomePage: function(displayType) {
+            }
+            _typeHomePage(displayType) {
                 return displayType==='HomePage';
-            },
+            }
 
             computeDocId(level, route){
                 if(!route) return null;
                 //console.log('computeDocId');
                 var pathArr = route.path.split('.');
                 return pathArr[level*4];
-            },
-            ready: function () {
+            }
+            ready () {
                 //console.log('ready widget: ', this.widget);
             }
-        });
+        }
+        window.customElements.define(NqWidgets.is, NqWidgets);
     </script>
 </dom-module>

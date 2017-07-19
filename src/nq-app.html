@@ -6,8 +6,19 @@
 <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="nq-layout.html">
 
+<link rel="lazy-import" href="nq-3d-class-model.html">
+<link rel="lazy-import" href="nq-layout.html">
+<link rel="lazy-import" href="nq-form.html">
+<link rel="lazy-import" href="nq-icons.html">
+<link rel="lazy-import" href="nq-layout.html">
+<link rel="lazy-import" href="nq-tabs.html">
+<link rel="lazy-import" href="nq-tree.html">
+<link rel="lazy-import" href="nq-tree-node.html">
+<link rel="lazy-import" href="nq-treenode-subquery.html">
+<link rel="lazy-import" href="nq-view-data.html">
+<link rel="lazy-import" href="nq-widgets.html">
+<link rel="lazy-import" href="shared-styles.html">
 <!--
 `my-blank-element`
 yes
@@ -16,20 +27,22 @@ yes
 -->
 
 <dom-module id="nq-app">
-
-    <style include="iron-flex iron-flex-alignment iron-positioning"></style>
-
-    <style>
-        :host {
-            --app-primary-color: #4285f4;
-            --app-secondary-color: black;
-            display: block;
-            height: 100%;
-            position: relative;
-        }
-    </style>
-
     <template>
+        NQAPP
+
+        <style include="iron-flex iron-flex-alignment iron-positioning"></style>
+
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+                display: block;
+                height: 100%;
+                position: relative;
+            }
+        </style>
+
+
         <!-- IMPORTANT: The firebase-app element needs to appear before any
              other firebase-* elements -->
         <firebase-app
@@ -75,53 +88,64 @@ yes
     </template>
 
     <script>
-        Polymer({
-            is: 'nq-app',
-            properties: {
-                pageId: {
-                    type: String,
-                    value: null
-                },
-                level: {
-                    type: Number,
-                    value: 0
-                },
-                route: {
-                    type: String
-                },
-                user: {
-                    type: Object
-                },
-                statusKnown: {
-                    type: Object
-                }
-            },
+        class NqApp extends Polymer.Element {
+            static get is() {
+                return 'nq-app';
+            }
+
+            static get properties() {
+                return {
+                    pageId: {
+                        type: String,
+                        value: null
+                    },
+                    level: {
+                        type: Number,
+                        value: 0
+                    },
+                    route: {
+                        type: String
+                    },
+                    user: {
+                        type: Object
+                    },
+                    statusKnown: {
+                        type: Object
+                    }
+                };
+            }
+
             //doesn't work, comes after compute page id
-            attached: function(){
-                if(!this.route.path){
+            attached() {
+                if (!this.route.path) {
                     this.set('route.path', '.575d4c3f2cf3d6dc3ed83146...575d4c3f2cf3d6dc3ed83148.575d4c3f2cf3d6dc3ed83147');
                     this.notifyPath('route.path');//doesn't work
                 }
-            },
-            computePageId(level, route, pageId){
-                if(!route) return null;
+            }
+
+            computePageId(level, route, pageId) {
+                if (!route) return null;
                 //console.log('computePageId');
-                if(pageId) return pageId;
+                if (pageId) return pageId;
                 //if(!route.path){
                 //    this.set('route.path', '.575d4c3f2cf3d6dc3ed83146...575d4c3f2cf3d6dc3ed83148.575d4c3f2cf3d6dc3ed83147');
                 //}
                 var pathArr = route.path.split('.');
-                return pathArr[level*4+1];
-            },
-            login: function() {
+                return pathArr[level * 4 + 1];
+            }
+
+            login() {
                 return this.$.auth.signInWithPopup();
-            },
-            logout: function() {
+            }
+
+            logout() {
                 return this.$.auth.signOut();
-            },
-            ready: function () {
+            }
+
+            ready() {
                 //console.log('ready level', this.level, 'pageId', this.pageId, 'pageIdComputed', this.pageIdComputed);
             }
-        });
+        }
+        window.customElements.define(NqApp.is, NqApp);
     </script>
 </dom-module>

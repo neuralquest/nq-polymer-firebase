@@ -67,37 +67,6 @@ yes
                     </template>
                 </iron-pages>
             </div>
-            <!--<paper-header-panel class="layout vertical">
-                <paper-tabs selected="{{selected}}" scrollable>
-                    <template is="dom-repeat" items="{{tabs}}" as="tab">
-                        <paper-tab>[[tab.name]]</paper-tab>
-                    </template>
-                </paper-tabs>
-                <iron-pages class="flex" selected="{{selected}}">
-                    <template is="dom-repeat" items="{{tabs}}" as="tab">
-                        <div>
-                            <!-- Tab content -- >
-                            <template is="dom-if" if="{{_hasSubPage(tab)}}">
-                                <!-- This tab has a sub-page -- >
-                                <nq-layout level="[[level]]" page-id="[[tab.pageId]]"></nq-layout>
-                            </template>
-                            <template is="dom-if" if="{{_notHasSubPage(tab)}}">
-                                <!-- This tab has widgets
-                                <p style="color:red">selected [[selected]]</p>
-                                <p style="color:red">level [[level]]</p>
-                                <p style="color:red">pagId [[pageId]]</p>
-                                <p style="color:red">tabName [[tab.name]]</p> -- >
-
-                                <nq-widgets level="[[level]]" widgets="[[tab.widgets]]"></nq-widgets>
-
-                            </template>
-                        </div>
-                    </template>
-                </iron-pages>
-            </paper-header-panel>-->
-            <!--<div class="relative" style="height:100%;">
-
-            </div>-->
         </template>
 
 
@@ -116,60 +85,65 @@ yes
 
 
     <script>
-        Polymer({
+        class NqTabs extends Polymer.Element {
+            static get is() {
+                return 'nq-tabs';
+            }
 
-            is: 'nq-tabs',
-
-            properties: {
-                pageId: {
-                    type: String
-                },
-                level: {
-                    type: Number
-                },
-                tabs: {
-                    type: Array,
-                    value: function() { return []; },
-                    //observer: 'dataChanged'
-                },
-                selected:{
-                    type: Number,
-                    value: 0,
-                    observer: '_updateRoute'
-                },
-                hasMoreThanOne: {
-                    type: String,
-                    value: false,
-                    computed: '_hasMoreThanOne(tabs)'
-                    //observer: '_pageChanged'
-                }
-                ,
-                hasOne: {
-                    type: String,
-                    value: false,
-                    computed: '_hasOne(tabs)'
-                    //observer: '_pageChanged'
-                }
-            },
-            _hasMoreThanOne: function(tabs) {
+            static get properties() {
+                return {
+                    pageId: {
+                        type: String
+                    },
+                    level: {
+                        type: Number
+                    },
+                    tabs: {
+                        type: Array,
+                        value () {
+                            return [];
+                        },
+                        //observer: 'dataChanged'
+                    },
+                    selected: {
+                        type: Number,
+                        value: 0,
+                        observer: '_updateRoute'
+                    },
+                    hasMoreThanOne: {
+                        type: String,
+                        value: false,
+                        computed: '_hasMoreThanOne(tabs)'
+                        //observer: '_pageChanged'
+                    }
+                    ,
+                    hasOne: {
+                        type: String,
+                        value: false,
+                        computed: '_hasOne(tabs)'
+                        //observer: '_pageChanged'
+                    }
+                };
+            }
+            _hasMoreThanOne(tabs) {
                 if(tabs.length==0) return false;
                 //console.log('_hasMoreThanOne:');
                 return tabs.length>1;
-            },
-            _hasOne: function(tabs) {
+            }
+            _hasOne(tabs) {
                 if(tabs.length==0) return false;
                 //console.log('_hasOne:');
                 return tabs.length==1;
-            },
-            _hasSubPage: function(tab) {
+            }
+            _hasSubPage(tab) {
                 //console.log('_hasSubPage:', tab.name, tab.pageId);
                 return tab.pageId?true:false;
-            },
-            _notHasSubPage: function(tab) {
+            }
+            _notHasSubPage(tab) {
                 //console.log('_notHasSubPage:', tab.name, tab.pageId, tab.pageId?false:true);
                 return tab.pageId?false:true;
-            },
-            _updateRoute: function(newValue, oldValue) {
+            }
+            _updateRoute(newValue, oldValue) {
                 if(!this.route) return;
                 //console.log('_updatedRoute:', oldValue, newValue);
                 var pathArr = this.route.path.split('.');
@@ -177,16 +151,17 @@ yes
                 pathArr[idx] = newValue;
                 var newPath = pathArr.join('.');
                 this.set('route.path', newPath);
-            },
+            }
 
 
-            ready: function () {
+            ready () {
                 //console.log('ready level', this.level, 'pageId:', this.pageId);
                 //console.log('tabs', this.tabs);
-            },
-            dataChanged: function(newValue, oldValue) {
+            }
+            dataChanged(newValue, oldValue) {
                 //console.log('tabs level', this.level, 'to:', newValue);
             }
-        });
+        }
+        window.customElements.define(NqTabs.is, NqTabs);
     </script>
 </dom-module>

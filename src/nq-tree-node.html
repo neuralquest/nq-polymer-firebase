@@ -156,89 +156,91 @@ Custom property | Description | Default
     </template>
 
     <script>
+        class NqTreeNode extends Polymer.Element {
+            static get is() {
+                return 'nq-tree-node';
+            }
 
-        Polymer({
+            static get properties() {
+                return {
 
-            is: 'nq-tree-node',
-
-            properties: {
-
-                /**
-                 * Data hold by this node (contains the children).
-                 *
-                 * Specific data:
-                 *
-                 * - `data.name`: string representing the node name.
-                 * - `data.icon`: string telling which icon to use (default to 'folder' icon).
-                 * - `data.open`: boolean telling whether the node is expanded or not.
-                 * - `data.children` array containing the children of the node.
-                 */
-                data: {
-                    type: Object,
-                    value: function() {
-                        return {};
+                    /**
+                     * Data hold by this node (contains the children).
+                     *
+                     * Specific data:
+                     *
+                     * - `data.name`: string representing the node name.
+                     * - `data.icon`: string telling which icon to use (default to 'folder' icon).
+                     * - `data.open`: boolean telling whether the node is expanded or not.
+                     * - `data.children` array containing the children of the node.
+                     */
+                    data: {
+                        type: Object,
+                        value () {
+                            return {};
+                        },
+                        observer: 'dataChanged'
                     },
-                    observer:'dataChanged'
-                },
-                level: {
-                    type: Number
-                },
-                nodeQuery: {
-                    type: Object,
-                    value: function() {
-                        return null;
+                    level: {
+                        type: Number
                     },
-                    observer:'nodeQueryChanged'
-                },
-                childrenQuery: {
-                    type: Array,
-                    value: function() {
-                        return null;
+                    nodeQuery: {
+                        type: Object,
+                        value () {
+                            return null;
+                        },
+                        observer: 'nodeQueryChanged'
                     },
-                    observer:'childrenQueryChanged'
-                },
-                viewQuery: {
-                    type: Array,
-                    value: function() {
-                        return null;
-                    }
-                },
-                hasChildren: {
-                    type: String,
-                    value: 'loading',
-                    observer: 'hasChildrenChanged'
-                },
-                expanded: {
-                    type: Boolean,
-                    value: false,
-                },
-                docId: {
-                    type: "String"
-                },
-                route: String,
+                    childrenQuery: {
+                        type: Array,
+                        value () {
+                            return null;
+                        },
+                        observer: 'childrenQueryChanged'
+                    },
+                    viewQuery: {
+                        type: Array,
+                        value () {
+                            return null;
+                        }
+                    },
+                    hasChildren: {
+                        type: String,
+                        value: 'loading',
+                        observer: 'hasChildrenChanged'
+                    },
+                    expanded: {
+                        type: Boolean,
+                        value: false,
+                    },
+                    docId: {
+                        type: "String"
+                    },
+                    route: String,
 
-                /**
-                 * `actions` available for this node. Each action object has the following fields:
-                 *
-                 * - `action.label`: string representing the display name of the menu item.
-                 * - `action.event`: string which is the event name to dispatch whenever the item is clicked.
-                 *
-                 */
-                actions: {
-                    type: Array,
-                    value: function() {
-                        return [{
+                    /**
+                     * `actions` available for this node. Each action object has the following fields:
+                     *
+                     * - `action.label`: string representing the display name of the menu item.
+                     * - `action.event`: string which is the event name to dispatch whenever the item is clicked.
+                     *
+                     */
+                    actions: {
+                        type: Array,
+                        value () {
+                            return [{
                                 "label": "Add Child",
                                 "event": "addChild"
                             },
-                            {
-                                "label": "Delete",
-                                "event": "delete"
-                            }];
+                                {
+                                    "label": "Delete",
+                                    "event": "delete"
+                                }];
+                        }
                     }
-                },
+                };
 
-            },
+            }
 
             /**
              * The `select` event is fired whenever `select()` is called on the node.
@@ -265,7 +267,7 @@ Custom property | Description | Default
                     else return 'node-preicon collapsed';
                 }
                 else return 'node-preicon';
-            },
+            }
 
             /**
              * Compute the necessary node icon.
@@ -273,40 +275,40 @@ Custom property | Description | Default
              * @param {string=folder} an icon name.
              * @return {string} the computed icon name.
              */
-            _computeIcon: function(nodeQuery) {
+            _computeIcon(nodeQuery) {
                 if(!nodeQuery) return 'folder';
                 if(nodeQuery.icon) return nodeQuery.icon;
                 else if (this.data.icon) return this.data.icon;
                 return 'folder';
-            },
-            _computeName: function(data) {
+            }
+            _computeName(data) {
                 return data.name ? data.name : data.title;
-            },
-            computeOrderByChild: function(subQuery) {
+            }
+            computeOrderByChild(subQuery) {
                 if(!subQuery.where || !subQuery.where.docProp) return null;
                 var value = subQuery.where.docProp;
                 return value;
-            },
-            computeEqualTo: function(subQuery) {
+            }
+            computeEqualTo(subQuery) {
                 if(!subQuery.where || !subQuery.where.value) return null;
                 var value = subQuery.where.value;
                 if(value == '$parent._id') value = this.docId;
                 return value;
-            },
-            hasChildrenChanged: function(hasChildren){
+            }
+            hasChildrenChanged(hasChildren){
                 console.log('hasChildrenChanged: ', hasChildren);
-            },
-            docIdChanged: function(newValue, oldValue){
+            }
+            docIdChanged(newValue, oldValue){
                 //console.log('docIdChanged: ', newValue);
-            },
-            _actionClicked: function (event) {
+            }
+            _actionClicked (event) {
                 this.fire(event.model.item.event, this);
-            },
+            }
 
             /**
              * Highlights node as the selected node.
              */
-            select: function (e){
+            select(e){
                 this.fire("select", this);
 
 
@@ -321,42 +323,42 @@ Custom property | Description | Default
                 var pathArr = pathArr.slice(0, idx+2);
                 var newPath = pathArr.join('.');
                 this.set('route.path', newPath);
-            },
+            }
             /**
              * Returns the parent tree node. Returns `null` if root.
              */
-            getParent: function () {
+            getParent () {
                 return this.domHost.tagName === 'NQ-TREE-NODE' ? this.domHost : null;
-            },
+            }
 
             /**
              * Returns the children tree nodes.
              */
-            getChildren: function () {
+            getChildren () {
                 return Polymer.dom(this.root).querySelectorAll('nq-tree-node');
-            },
+            }
 
             /**
              * Display/Hide the children nodes.
              */
-            toggleChildren: function() {
+            toggleChildren() {
                 this.expanded = !this.expanded;
-            },
+            }
 
 
             dataChanged:function(newValue, oldvalue){
                 //if(!newValue) return;
                 //console.log('dataChanged tree-node', newValue);
-            },
+            }
             childrenQueryChanged:function(newValue, oldvalue){
                 if(!newValue) return;
                 //console.log('childrenQueryChanged', newValue);
-            },
+            }
             nodeQueryChanged:function(newValue, oldvalue){
                 if(!newValue) return;
                 //console.log('nodeQueryChanged', newValue);
-            },
-        });
-
+            }
+        }
+        window.customElements.define(NqTreeNode.is, NqTreeNode);
     </script>
 </dom-module>

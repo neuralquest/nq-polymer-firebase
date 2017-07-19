@@ -86,103 +86,73 @@ yes
     </template>
 
     <script>
-        Polymer({
-            is: 'nq-layout',
+        class NqLayout extends Polymer.Element {
+            static get is() {
+                return 'nq-layout';
+            }
 
-            properties: {
-                pageId: {
-                    type: String
-                },
-                level: {
-                    type: Number,
-                },
-                page: {
-                    type: Array,
-                    value: function() { return []; },
-                    //observer: 'dataChanged'
-                }
-            },
+            static get properties() {
+                return {
+                    pageId: {
+                        type: String
+                    },
+                    level: {
+                        type: Number,
+                    },
+                    page: {
+                        type: Array,
+                        value () {
+                            return [];
+                        },
+                        //observer: 'dataChanged'
+                    }
+                };
+            }
 
             computeLevelInc(level){
                 return level+1;
-            },
+            }
             computePageIdInc(level, route){
                 if(!route) return null;
                 //console.log('computePageIdInc');
                 var pathArr = route.path.split('.');
                 var idx = (level+1)*4+1;
                 return pathArr[idx];
-            },
+            }
 
-            _pathToPageId: function(path,level){
+            _pathToPageId(path,level){
                 if(this.pageId) return this.pageId;
                 var pathArr = path.split('.');
                 return pathArr[level*4+1];
-            },
-            _pathToPageIdInc: function(path,level){
+            }
+            _pathToPageIdInc(path,level){
                 var pathArr = path.split('.');
                 //console.log('_pathToPageIdInc:', pathArr[(level+1)*4+1]);
                 return pathArr[(level+1)*4+1];
-            },
+            }
 
-            _hasDivider: function(page) {
+            _hasDivider(page) {
                 if(page.length==0) return false;
                 //console.log('_hasDivider:');
                 return page.divider === 'Vertical';
-            },
-            _noDivider: function(page) {
+            }
+            _noDivider(page) {
                 if(page.length==0) return false;
                 //console.log('_noDivider:');
                 return page.divider != 'Vertical';
-            },
+            }
 
-            _levelChanged: function(newValue, oldValue) {
+            _levelChanged(newValue, oldValue) {
                 //console.log('level from:', oldValue, 'to:', newValue);
-            },
-            ready: function () {
+            }
+            ready () {
                 //console.log('ready level', this.level, 'pageId:', this.pageId);
                 //console.log('ready level', this.level, 'pageId', this.pageId, 'pageIdInc', this.pageIdInc);
-            },
-            dataChanged: function(newValue, oldValue) {
+            }
+            dataChanged(newValue, oldValue) {
                 console.log('page from:', oldValue, 'to:', newValue);
-            },
-            /*properties: {
-                pageId: String
-            },
-            dataChanged: function (newData, oldData) {
-                // do something when the query returns values
-                debugger;
-            },
-            observers: [
-                '_routePageChanged(route.path)',
-            ],
-
-            _routePageChanged: function(path) {
-                console.log('page change', path)
-            },
-
-            _pageChanged: function(page) {
-                // Load page import on demand. Show 404 page if fails
-                var resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
-                this.importHref(resolvedPageUrl, null, this._showPage404, true);
-            },
-
-            _showPage404: function() {
-                this.page = 'view404';
-            },
-            _getState: function(location, level){
-                var hashArr = location.split('.');
-                return {
-                    pageIdPreviousLevel: hashArr[level*4-3],
-                    tabNumPreviousLevel: parseInt(hashArr[level*4-2])?parseInt(hashArr[level*4-2]):0,
-                    widgetNumPreviousLevel: parseInt(hashArr[level*4-1])?parseInt(hashArr[level*4-1]):0,
-                    docIdPreviousLevel: hashArr[level*4],
-                    pageId: hashArr[level*4+1],
-                    tabNum: parseInt(hashArr[level*4+2])?parseInt(hashArr[level*4+2]):0,
-                    widgetNum: parseInt(hashArr[level*4+3])?parseInt(hashArr[level*4+3]):0,
-                    docId: hashArr[level*4+4]
-                };
-            },*/
-        });
+            }
+        }
+        window.customElements.define(NqLayout.is, NqLayout);
     </script>
 </dom-module>

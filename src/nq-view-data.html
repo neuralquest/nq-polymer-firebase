@@ -10,19 +10,24 @@ view data
 
 <dom-module id="nq-view-data">
     <script>
-        Polymer({
+        class NqViewData extends Polymer.Element {
+            static get is() {
+                return 'nq-view-data';
+            }
 
-            is: 'nq-view-data',
-
-            properties: {
-                viewId: String,
-                viewDoc: {
-                    type: Object,
-                    value: function() { return {}; },
-                    notify: true
-                }
-            },
-            ready: function() {
+            static get properties() {
+                return {
+                    viewId: String,
+                    viewDoc: {
+                        type: Object,
+                        value () {
+                            return {};
+                        },
+                        notify: true
+                    }
+                };
+            }
+            ready() {
                 var self = this;
                 var database = firebase.database();
                 //return;
@@ -46,8 +51,8 @@ view data
                         self.viewDoc = viewDoc;
                     });
                 });
-            },
-            getInheritedClassSchema: function(id){
+            }
+            getInheritedClassSchema(id){
                 var self = this;
                 var inheritedClassSchema = {};
                 if(!id || id == 'classes'){
@@ -59,8 +64,8 @@ view data
                     });
                     return inheritedClassSchema;
                 });
-            },
-            getAncestors: function(id) {
+            }
+            getAncestors(id) {
                 var self = this;
                 var database = firebase.database();
                 return database.ref('/documents/' + id).once('value').then(function(snapshot){
@@ -78,8 +83,8 @@ view data
                         return Promise.resolve(ancestorArr);//return a promise
                     }
                 });
-            },
-            mergeDeep: function(target, source) {
+            }
+            mergeDeep(target, source) {
                 var self = this;
                 if (self.isObject(target) && self.isObject(source)) {
                     for (const key in source) {
@@ -92,10 +97,11 @@ view data
                     }
                 }
                 return target;
-            },
-            isObject: function (item) {
+            }
+            isObject (item) {
                 return (item && typeof item === 'object' && !Array.isArray(item) && item !== null);
             }
-        });
+        }
+        window.customElements.define(NqViewData.is, NqViewData);
     </script>
 </dom-module>

@@ -45,106 +45,112 @@
     </template>
 
     <script>
-
-        Polymer({
-
-            is: 'nq-treenode-subquery',
-
-            properties: {
-
-                /**
-                 * Data hold by this node (contains the children).
-                 *
-                 * Specific data:
-                 *
-                 * - `data.name`: string representing the node name.
-                 * - `data.icon`: string telling which icon to use (default to 'folder' icon).
-                 * - `data.open`: boolean telling whether the node is expanded or not.
-                 * - `data.children` array containing the children of the node.
-                 */
-                subQuery: {
-                    type: Object,
-                    value: function() {
-                        return null;
+        class NqTreenodeSubquery extends Polymer.Element {
+            static get is() {
+                return 'nq-treenode-subquery';
+            }
+    
+            static get properties() {
+                return {
+    
+                    /**
+                     * Data hold by this node (contains the children).
+                     *
+                     * Specific data:
+                     *
+                     * - `data.name`: string representing the node name.
+                     * - `data.icon`: string telling which icon to use (default to 'folder' icon).
+                     * - `data.open`: boolean telling whether the node is expanded or not.
+                     * - `data.children` array containing the children of the node.
+                     */
+                    subQuery: {
+                        type: Object,
+                        value () {
+                            return null;
+                        }
+                    },
+                    viewQuery: {
+                        type: 'Array',
+                        value () {
+                            return [];
+                        },
+                    },
+                    level: {
+                        type: Number
+                    },
+                    docId: {
+                        type: "String",
+                        value: null,
+                        observer: 'docIdChanged'
+                    },
+                    children: {
+                        type: 'Array',
+                        value () {
+                            return [];
+                        },
+                        observer: 'childrenChanged'
+                    },
+                    hasChildren: {
+                        type: "String",
+                        notify: true
+                    },
+                    expanded: {
+                        type: "Boolean"
                     }
-                },
-                viewQuery: {
-                    type: 'Array',
-                    value: function(){
-                        return [];
-                    },
-                },
-                level: {
-                    type: Number
-                },
-                docId: {
-                    type: "String",
-                    value: null,
-                    observer: 'docIdChanged'
-                },
-                children: {
-                    type: 'Array',
-                    value: function(){
-                        return [];
-                    },
-                    observer: 'childrenChanged'
-                },
-                hasChildren: {
-                    type: "String",
-                    notify: true
-                },
-                expanded: {
-                    type: "Boolean"
-                },
-            },
-            observers: [
-                'childrenLengthChanged(children.length)'
-            ],
+                };
+            }
 
-            computeOrderByChild: function(subQuery, docId) {
+            static get observers() {
+                return [
+                    'childrenLengthChanged(children.length)'
+                ];
+            }
+
+            computeOrderByChild(subQuery, docId) {
                 if(!docId || !subQuery || !subQuery.where || !subQuery.where.docProp) return null;
                 var value = subQuery.where.docProp;
                 return value;
-            },
+            }
 
-            computeEqualTo: function(subQuery, docId) {
+            computeEqualTo(subQuery, docId) {
                 if(!docId || !subQuery || !subQuery.where || !subQuery.where.value) return null;
                 var value = subQuery.where.value;
                 if(value == '$parent._id') value = this.docId;
                 return value;
-            },
-            computeChildrenQuery: function(viewQuery) {
+            }
+            computeChildrenQuery(viewQuery) {
                 //if(this.subQuery.join) [this.subQuery.join];
                 if(this.subQuery.recursive){
                     if(this.subQuery.recursive === 'schemaQuery') return viewQuery;
                     return this.findChildrenQueryByName(this.subQuery.recursive)
                 }
                 return viewQuery;
-            },
-            childrenLengthChanged: function(length){
+            }
+            childrenLengthChanged(length){
                 //console.log('childrenLengthChanged: ', length);
                 if(length>0) this.hasChildren = 'yes';
                 else if(this.hasChildren === 'loading') this.hasChildren = 'no';
-            },
-            findChildrenQueryByName: function(queryName){
+            }
+            findChildrenQueryByName(queryName){
                 return this.viewQuery.find(function(subQuery){
                     return(subQuery.queryName === queryName);
                 });
-            },
+            }
 
 
-            docIdChanged: function(newValue, oldValue){
+            docIdChanged(newValue, oldValue){
                 //console.log('docIdChanged: ', newValue);
-            },
-            childrenChanged: function (newValue, oldData) {
+            }
+            childrenChanged (newValue, oldData) {
                 //console.log('childrenChanged: ', newValue);
                 return;
                 if(newValue.length>0) this.hasChildren = 'yes';
                 else if(this.hasChildren === 'loading') this.hasChildren = 'no';
             }
-            
 
-        });
+
+        }
+        window.customElements.define(NqTreenodeSubquery.is, NqTreenodeSubquery);
 
     </script>
 </dom-module>

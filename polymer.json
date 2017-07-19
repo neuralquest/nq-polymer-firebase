@@ -1,19 +1,29 @@
 {
   "entrypoint": "index.html",
-  "shell": "src/my-app.html",
+  "shell": "src/nq-app.html",
   "fragments": [
-    "src/my-view1.html",
-    "src/my-view2.html",
-    "src/my-view3.html",
-    "src/my-view404.html"
+    "src/nq-3d-class-model.html",
+    "src/nq-layout.html",
+    "src/nq-form.html",
+    "src/nq-icons.html",
+    "src/nq-tabs.html",
+    "src/nq-tree.html",
+    "src/nq-tree-node.html",
+    "src/nq-treenode-subquery.html",
+    "src/nq-view-data.html",
+    "src/nq-widgets.html",
+    "src/nq-shared-styles.html"
   ],
-  "sourceGlobs": [
+  "sources": [
     "src/**/*",
     "images/**/*",
     "bower.json"
   ],
-  "includeDependencies": [
+  "extraDependencies": [
     "manifest.json",
-    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
-  ]
+    "bower_components/webcomponentsjs/*.js"
+  ],
+  "lint": {
+    "rules": ["polymer-2"]
+  }
 }

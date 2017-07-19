@@ -49,29 +49,34 @@ yes
     </template>
 
     <script>
-        Polymer({
+        class Nq3dClassModel extends Polymer.Element {
+            static get is() {
+                return 'nq-3d-class-model';
+            }
 
-            is: 'nq-3d-class-model',
+            static get properties() {
+                return {
+                    level: Number,
+                    viewId: String,
+                    doc: {
+                        type: Object,
+                        value () {
+                            return {};
+                        },
+                        //observer: 'dataChanged'
+                    }
+                };
 
-            properties: {
-                level: Number,
-                viewId: String,
-                doc:{
-                    type:Object,
-                    value: function() { return {}; },
-                    //observer: 'dataChanged'
-                }
-
-            },
-            _pathToDocId: function(path, level){
+            }
+            _pathToDocId(path, level){
                 var pathArr = path.split('.');
                 //return pathArr[4];
                 return pathArr[level*4];
-            },
-            dataChanged: function(newValue, oldValue) {
+            }
+            dataChanged(newValue, oldValue) {
                 console.log('nq-home doc from:', oldValue, 'to:', newValue);
-            },
-            ready: function(){
+            }
+            ready(){
                 var geometry = new THREE.BoxGeometry( 20, 20, 20 );
                 var material = new THREE.MeshNormalMaterial();
 
@@ -80,6 +85,7 @@ yes
 
                 this.$.inspector1.value = this.$.viewport1;
             }
-        });
+        }
+        window.customElements.define(Nq3dClassModel.is, Nq3dClassModel);
     </script>
 </dom-module>

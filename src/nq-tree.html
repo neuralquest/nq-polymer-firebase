@@ -10,7 +10,7 @@ yes
 -->
 
 <dom-module id="nq-tree">
-    <template id="t" >
+    <template>
         <style>
             :host {
                 --app-primary-color: #4285f4;
@@ -47,48 +47,54 @@ yes
 
 
     <script>
-        Polymer({
+        class NqTree extends Polymer.Element {
+            static get is() {
+                return 'nq-tree';
+            }
 
-            is: 'nq-tree',
+            static get properties() {
+                return {
+                    level: Number,
+                    viewId: String,
+                    docId: String,
+                    pageId: String,
+                    data: {
+                        type: 'Object',
+                        value(){return {'name': 'Loading...'}}
+                    },
+                    /**
+                     * `selected` is the current selected `<paper-tree-node>` in the tree.
+                     */
+                    selected: {
+                        type: Object,
+                        value: null
+                    }
+                };
+            }
+            static get listeners() {
+                return [
+                    {"select": "selectNode"}
+                ];
+            }
 
-            properties: {
-                level: Number,
-                viewId: String,
-                docId: String,
-                pageId: String,
-                data: {
-                    type: 'Object',
-                    value: function(){return {'name': 'Loading...'}}
-                },
-                /**
-                 * `selected` is the current selected `<paper-tree-node>` in the tree.
-                 */
-                selected: {
-                    type: Object,
-                    value: null
-                },
-            },
-            listeners: {
-                "select": "selectNode"
-            },
-            computeDocPath: function(view){
+            computeDocPath(view){
                 if(Object.keys(view).length === 0) return null;
                 return "/documents/"+this.getDocId(view);
-            },
-            getDocId: function(view){
+            }
+            getDocId(view){
                 if(!view || !view.rootQuery || !view.rootQuery.where || !view.rootQuery.where.value) return null;
                 var value = view.rootQuery.where.value;
                 var docId = value;
                 if(value === '$docId') docId = this.docId;
                 if(value === '$parent.initialDocId') return null;//$parent.initialDocId
                 return docId;
-            },
+            }
             /**
              * Called when the `select` event is fired from an internal node.
              *
              * @param {object} e An event object.
              */
-            selectNode: function(e) {
+            selectNode(e) {
                 if(this.selected) {
                     this.toggleClass("selected", false, this.selected);
                 }
@@ -102,7 +108,8 @@ yes
                 }
             }
 
-        });
+        }
+        window.customElements.define(NqTree.is, NqTree);
     </script>
 
 </dom-module>
