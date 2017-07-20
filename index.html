@@ -59,22 +59,25 @@
     <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
 
     <!-- Load your application shell -->
-    <link rel="import" href="src/my-app.html">
+    <link rel="import" href="src/nq-app.html">
 
+
+    <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+    <custom-style>
+        <style include="iron-flex iron-flex-alignment iron-positioning"></style><!--must: is="custom-style"-->
+    </custom-style>
 
     <!-- Add any global styles for body, document, etc. -->
     <style>
         body {
-            margin: 0;
             font-family: 'Roboto', 'Noto', sans-serif;
-            line-height: 1.5;
-            min-height: 100vh;
-            background-color: #eeeeee;
         }
     </style>
 </head>
-<body>
-    <my-app></my-app>
+<body  class="fullbleed vertical layout">
+    <div class="flex">
+        <nq-app></nq-app>
+    </div>
     <noscript>
         Please enable JavaScript to view this website.
     </noscript>

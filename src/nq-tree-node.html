@@ -346,15 +346,15 @@ Custom property | Description | Default
             }
 
 
-            dataChanged:function(newValue, oldvalue){
+            dataChanged(newValue, oldvalue){
                 //if(!newValue) return;
                 //console.log('dataChanged tree-node', newValue);
             }
-            childrenQueryChanged:function(newValue, oldvalue){
+            childrenQueryChanged(newValue, oldvalue){
                 if(!newValue) return;
                 //console.log('childrenQueryChanged', newValue);
             }
-            nodeQueryChanged:function(newValue, oldvalue){
+            nodeQueryChanged(newValue, oldvalue){
                 if(!newValue) return;
                 //console.log('nodeQueryChanged', newValue);
             }

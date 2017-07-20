@@ -1,15 +1,12 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
-<link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
-<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
-<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
-<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
-<link rel="import" href="../bower_components/iron-splitter/iron-splitter.html">
+<!--link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">-->
+<link rel="import" href="../bower_components/super-splitter/super-splitter.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="nq-tabs.html">
 
 <!--
+<link rel="import" href="nq-tabs.html">
 `my-blank-element`
 yes
 
@@ -32,46 +29,38 @@ yes
 
                 /*overflow: hidden;*/
             }
-            app-header {
-                color: #fff;
-                background-color: var(--app-primary-color);
-            }
-            app-header paper-icon-button {
-                --paper-icon-button-ink-color: white;
-            }
             .navpane{
                 width: 240px;
+            }
+            .splitterBg{
+                background: #CDDDE9;
             }
         </style>
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
-        <firebase-document
-            path="/documents/{{pageId}}"
-            data="{{page}}">
-        </firebase-document>
-
-<!--
-        <app-indexeddb-mirror
-                key="pages"
-                data="{{livePage}}"
-                persisted-data="{{page}}">
-        </app-indexeddb-mirror>
--->
+        <template is="dom-if" if="[[pageId]]">
+            [[pageId]]
+            <firebase-document
+                    path="/documents/[[pageId]]"
+                    data="{{page}}" log>
+            </firebase-document>
+        </template>
+        <!--
+                <app-indexeddb-mirror
+                        key="pages"
+                        data="{{livePage}}"
+                        persisted-data="{{page}}">
+                </app-indexeddb-mirror>
+        -->
 
         <template is="dom-if" if="{{_hasDivider(page)}}">
-            <!--<paper-drawer-panel class="flex">
-                <!-- Navigation content -- >
-                <nq-tabs drawer level="[[level]]" page-id="[[pageId]]"></nq-tabs>
-                <!-- Main content-- >
-                <nq-tabs main class="fit" level="{{levelInc}}" page-id="[[pageIdInc]]"></nq-tabs>
-            </paper-drawer-panel>-->
             <div>
                 <div class="layout horizontal fit">
                     <!-- Navigation content -->
                     <nq-tabs class="navpane" level="[[level]]" page-id="[[pageId]]"></nq-tabs>
                     <!-- Splitter -->
-                    <iron-splitter direction="left" ></iron-splitter>
+                    <super-splitter class="splitterBg" direction="left" ></super-splitter>
                     <!-- Main content -->
                     <nq-tabs class="flex" level="[[computeLevelInc(level)]]" page-id="[[computePageIdInc(level, route)]]"></nq-tabs>
                 </div>
@@ -94,17 +83,16 @@ yes
             static get properties() {
                 return {
                     pageId: {
-                        type: String
+                        type: String,
+                        observer: 'dataChanged'
                     },
                     level: {
                         type: Number,
                     },
                     page: {
-                        type: Array,
-                        value () {
-                            return [];
-                        },
-                        //observer: 'dataChanged'
+                        type: Object,
+                        value: function(){return {};},
+                        observer: 'pageChanged'
                     }
                 };
             }
@@ -132,12 +120,12 @@ yes
             }
 
             _hasDivider(page) {
-                if(page.length==0) return false;
+                if(Object.keys(page).length === 0)  return false;
                 //console.log('_hasDivider:');
                 return page.divider === 'Vertical';
             }
             _noDivider(page) {
-                if(page.length==0) return false;
+                if(Object.keys(page).length === 0)  return false;
                 //console.log('_noDivider:');
                 return page.divider != 'Vertical';
             }
@@ -145,11 +133,13 @@ yes
             _levelChanged(newValue, oldValue) {
                 //console.log('level from:', oldValue, 'to:', newValue);
             }
-            ready () {
-                //console.log('ready level', this.level, 'pageId:', this.pageId);
-                //console.log('ready level', this.level, 'pageId', this.pageId, 'pageIdInc', this.pageIdInc);
-            }
+
             dataChanged(newValue, oldValue) {
+                console.log('page ID from:', oldValue, 'to:', newValue);
+            }
+
+
+            pageChanged(newValue, oldValue) {
                 console.log('page from:', oldValue, 'to:', newValue);
             }
         }

@@ -3,10 +3,15 @@
 <link rel="import" href="../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
-<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-
+<link rel="import" href="nq-layout.html">
+<!--
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+-->
+<!--
 <link rel="lazy-import" href="nq-3d-class-model.html">
 <link rel="lazy-import" href="nq-layout.html">
 <link rel="lazy-import" href="nq-form.html">
@@ -19,6 +24,7 @@
 <link rel="lazy-import" href="nq-view-data.html">
 <link rel="lazy-import" href="nq-widgets.html">
 <link rel="lazy-import" href="shared-styles.html">
+-->
 <!--
 `my-blank-element`
 yes
@@ -28,7 +34,6 @@ yes
 
 <dom-module id="nq-app">
     <template>
-        NQAPP
 
         <style include="iron-flex iron-flex-alignment iron-positioning"></style>
 
@@ -40,50 +45,75 @@ yes
                 height: 100%;
                 position: relative;
             }
+            footer {
+                height: 50px;
+                background-image: linear-gradient(#CDDDE9, white);
+                background-size: 20px 200px;
+                background-repeat-y: no-repeat;
+            }
+            paper-button {
+                background: #4285f4;
+                color: white;
+            }
+            .logo {
+                width: 200px;
+                margin-right: 10px;
+                position: relative;
+            }
+            .logoText {
+                position:absolute;
+                top:0;
+                width:inherit;
+                text-align:center;
+                font-size:25px;
+                font-weight:bold;
+                color:white;
+                text-shadow: 2px 2px 4px black
+            }
+            img {
+                border-radius: 3px;
+                box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+                width: 200px;
+                height: 30px;
+            }
         </style>
 
 
         <!-- IMPORTANT: The firebase-app element needs to appear before any
              other firebase-* elements -->
-        <firebase-app
-            id="firebase"
-            api-key="AIzaSyBrQE0rTSS0X7Vn309Vjb2hU8BirhJJ6B8"
-            auth-domain="neuralquest-395e9.firebaseapp.com"
-            database-url="https://neuralquest-395e9.firebaseio.com">
+         <firebase-app
+               api-key="AIzaSyBrQE0rTSS0X7Vn309Vjb2hU8BirhJJ6B8"
+               auth-domain="neuralquest-395e9.firebaseapp.com"
+               database-url="https://neuralquest-395e9.firebaseio.com">
         </firebase-app>
 
         <firebase-auth
-            id="auth"
-            user="{{user}}"
-            status-known="{{statusKnown}}"
-            provider="google">
+           id="auth"
+           user="{{user}}"
+           status-known="{{statusKnown}}"
+           provider="google">
         </firebase-auth>
 
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
-        <template is="dom-if" if="[[computePageId(level, route, pageId)]]">
-            <div class="layout vertical fit">
+        <div class="layout vertical fit">
 
-                <nq-layout class="flex" level="[[level]]" page-id="[[computePageId(level, route, pageId)]]"></nq-layout>
-                <paper-toolbar>
-                    <span>
-                        <paper-button raised on-tap="login" hidden$="[[user]]">Sign in</paper-button>
-                        <paper-button raised on-tap="logout" hidden$="[[!user]]">Sign out</paper-button>
-                    </span>
-                    <span>
-                        <template is="dom-if" if="[[user]]">
-                            <p>User: [[user.displayName]]</p>
-                        </template>
-                    </span>
-                    <span style="flex: 1;"></span>
-                    <span style="width: 160px">
-                        <img src="https://firebasestorage.googleapis.com/v0/b/neuralquest-395e9.appspot.com/o/lefkasHome1.png?alt=media&token=bc30558d-8b6c-47b1-a1b7-87df68851fdd"
-                             width="160px" height="24px">
-                        <div style="position:absolute;top:15px; width:inherit;text-align:center;font-size:20px;font-weight:bold;color:white;text-shadow: 2px 2px 4px black">Neuralquest</div>
-                    </span>
-                </paper-toolbar>
-            </div>
-        </template>
+            <nq-layout class="flex" level="[[level]]" page-id="[[computePageId(level, route)]]"></nq-layout>
+
+            <footer  class="layout horizontal center">
+                <paper-button raised on-tap="login" hidden$="[[user]]">Sign in</paper-button>
+                <paper-button raised on-tap="logout" hidden$="[[!user]]">Sign out</paper-button>
+                <template is="dom-if" if="[[user]]">
+                    <p>User: [[user.displayName]]</p>
+                </template>
+                <div class="flex"></div>
+                <div class="logo">
+                    <img src="https://firebasestorage.googleapis.com/v0/b/neuralquest-395e9.appspot.com/o/lefkasHome1.png?alt=media&token=bc30558d-8b6c-47b1-a1b7-87df68851fdd">
+                    <div class="logoText">Neuralquest</div>
+                </div>
+            </footer>
+
+        </div>
 
     </template>
 
@@ -115,21 +145,8 @@ yes
                 };
             }
 
-            //doesn't work, comes after compute page id
-            attached() {
-                if (!this.route.path) {
-                    this.set('route.path', '.575d4c3f2cf3d6dc3ed83146...575d4c3f2cf3d6dc3ed83148.575d4c3f2cf3d6dc3ed83147');
-                    this.notifyPath('route.path');//doesn't work
-                }
-            }
-
-            computePageId(level, route, pageId) {
+            computePageId(level, route) {
                 if (!route) return null;
-                //console.log('computePageId');
-                if (pageId) return pageId;
-                //if(!route.path){
-                //    this.set('route.path', '.575d4c3f2cf3d6dc3ed83146...575d4c3f2cf3d6dc3ed83148.575d4c3f2cf3d6dc3ed83147');
-                //}
                 var pathArr = route.path.split('.');
                 return pathArr[level * 4 + 1];
             }
@@ -142,9 +159,6 @@ yes
                 return this.$.auth.signOut();
             }
 
-            ready() {
-                //console.log('ready level', this.level, 'pageId', this.pageId, 'pageIdComputed', this.pageIdComputed);
-            }
         }
         window.customElements.define(NqApp.is, NqApp);
     </script>
