@@ -41,7 +41,8 @@ yes
                       node-query="[[view.rootQuery]]"
                       children-query="[[view.query]]"
                       view-query="[[view.query]]"
-                      doc-id="[[getDocId(view)]]"></nq-tree-node>
+                      doc-id="[[getDocId(view)]]"
+                      on-select="selectNode"></nq-tree-node>
 
     </template>
 
@@ -71,11 +72,6 @@ yes
                     }
                 };
             }
-            static get listeners() {
-                return [
-                    {"select": "selectNode"}
-                ];
-            }
 
             computeDocPath(view){
                 if(Object.keys(view).length === 0) return null;
@@ -96,13 +92,13 @@ yes
              */
             selectNode(e) {
                 if(this.selected) {
-                    this.toggleClass("selected", false, this.selected);
+                    //this.toggleClass("selected", false, this.selected);
                 }
 
                 // Only selects `<nq-tree-node>`.
                 if (e.detail && e.detail.tagName === 'NQ-TREE-NODE') {
                     this.selected = e.detail;
-                    this.toggleClass("selected", true, this.selected);
+                    //this.toggleClass("selected", true, this.selected);
                 } else {
                     this.selected = null;
                 }

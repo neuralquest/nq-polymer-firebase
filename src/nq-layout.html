@@ -4,9 +4,9 @@
 <!--link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">-->
 <link rel="import" href="../bower_components/super-splitter/super-splitter.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="nq-tabs.html">
 
 <!--
-<link rel="import" href="nq-tabs.html">
 `my-blank-element`
 yes
 
@@ -40,10 +40,9 @@ yes
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
         <template is="dom-if" if="[[pageId]]">
-            [[pageId]]
             <firebase-document
                     path="/documents/[[pageId]]"
-                    data="{{page}}" log>
+                    data="{{page}}">
             </firebase-document>
         </template>
         <!--

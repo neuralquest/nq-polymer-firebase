@@ -82,7 +82,7 @@ yes
                         value () {
                             return [];
                         },
-                        //observer: 'dataChanged'
+                        observer: 'dataChanged'
                     }
                 };
             }
@@ -115,8 +115,9 @@ yes
                 var pathArr = route.path.split('.');
                 return pathArr[level*4];
             }
-            ready () {
-                //console.log('ready widget: ', this.widget);
+
+            dataChanged(newValue, oldValue) {
+                console.log('WIDGETS level', this.level, 'to:', newValue);
             }
         }
         window.customElements.define(NqWidgets.is, NqWidgets);
