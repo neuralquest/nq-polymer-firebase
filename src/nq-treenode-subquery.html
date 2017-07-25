@@ -1,4 +1,6 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="./nq-tree-node.html">
 
@@ -19,17 +21,16 @@
 
         </style>
 
-
         <firebase-query
                 path="/documents"
                 order-by-child="[[computeOrderByChild(subQuery, docId)]]"
                 equal-to="[[computeEqualTo(subQuery, docId)]]"
-                data="{{children}}">
+                data="{{children}}" log>
         </firebase-query>
 
-        <template is="dom-if" if="{{expanded}}">
-            <template is="dom-repeat" items="{{children}}">
-                <li>
+        <div hidden$="[[!expanded]]">
+            <template is="dom-repeat" items="[[children]]">
+                <template is="dom-if" if="[[expanded]]">
                     <nq-tree-node id="root"
                                   data="[[item]]"
                                   level="[[level]]"
@@ -37,10 +38,9 @@
                                   children-query="[[computeChildrenQuery(viewQuery)]]"
                                   view-query="[[viewQuery]]"
                                   doc-id="[[item.$key]]"></nq-tree-node>
-                </li>
+                </template>
             </template>
-        </template>
-
+        </div>
 
     </template>
 
@@ -49,10 +49,10 @@
             static get is() {
                 return 'nq-treenode-subquery';
             }
-    
+
             static get properties() {
                 return {
-    
+
                     /**
                      * Data hold by this node (contains the children).
                      *
@@ -67,13 +67,15 @@
                         type: Object,
                         value () {
                             return null;
-                        }
+                        },
+                        observer: 'subQueryChanged'
                     },
                     viewQuery: {
                         type: 'Array',
                         value () {
                             return [];
                         },
+                        observer: 'viewQueryChanged'
                     },
                     level: {
                         type: Number
@@ -85,10 +87,11 @@
                     },
                     children: {
                         type: 'Array',
-                        value () {
+                        value: function() {
                             return [];
                         },
-                        observer: 'childrenChanged'
+                        notify: true
+                        //observer: 'childrenChanged'
                     },
                     hasChildren: {
                         type: "String",
@@ -109,6 +112,7 @@
             computeOrderByChild(subQuery, docId) {
                 if(!docId || !subQuery || !subQuery.where || !subQuery.where.docProp) return null;
                 var value = subQuery.where.docProp;
+                console.log('computeOrderByChild: ',value);
                 return value;
             }
 
@@ -116,38 +120,45 @@
                 if(!docId || !subQuery || !subQuery.where || !subQuery.where.value) return null;
                 var value = subQuery.where.value;
                 if(value == '$parent._id') value = this.docId;
+                console.log('computeEqualTo: ',value);
                 return value;
             }
             computeChildrenQuery(viewQuery) {
                 //if(this.subQuery.join) [this.subQuery.join];
+                return viewQuery;
                 if(this.subQuery.recursive){
                     if(this.subQuery.recursive === 'schemaQuery') return viewQuery;
                     return this.findChildrenQueryByName(this.subQuery.recursive)
                 }
                 return viewQuery;
             }
-            childrenLengthChanged(length){
-                //console.log('childrenLengthChanged: ', length);
-                if(length>0) this.hasChildren = 'yes';
-                else if(this.hasChildren === 'loading') this.hasChildren = 'no';
-            }
             findChildrenQueryByName(queryName){
                 return this.viewQuery.find(function(subQuery){
                     return(subQuery.queryName === queryName);
                 });
             }
+            childrenLengthChanged(length){
+                console.log('childrenLengthChanged: ', this.subQuery.queryName, length);
+                if(length>0) this.hasChildren = 'yes';
+                else if(this.hasChildren === 'loading') this.hasChildren = 'no';
+            }
 
 
             docIdChanged(newValue, oldValue){
-                //console.log('docIdChanged: ', newValue);
+                console.log('docIdChanged: ',  this.subQuery.queryName, newValue);
             }
             childrenChanged (newValue, oldData) {
-                //console.log('childrenChanged: ', newValue);
+                //console.log('childrenChanged: ', this.level, newValue);
                 return;
                 if(newValue.length>0) this.hasChildren = 'yes';
                 else if(this.hasChildren === 'loading') this.hasChildren = 'no';
             }
-
+            subQueryChanged (newValue, oldData) {
+                console.log('subQueryChanged: ', this.level, newValue.queryName);
+            }
+            viewQueryChanged (newValue, oldData) {
+                //console.log('viewQueryChanged: ', this.level, newValue);
+            }
 
         }
         window.customElements.define(NqTreenodeSubquery.is, NqTreenodeSubquery);
