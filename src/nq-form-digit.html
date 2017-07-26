@@ -1,0 +1,334 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-layout.html">
+<link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-item.html">
+<link rel="import" href="../bower_components/vaadin-text-field/vaadin-text-field.html">
+<link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+
+<!--
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill.html">
+<link rel="import" href="../bower_components/polymer-quill/polymer-quill-html-render.html">
+-->
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-form-digit">
+    <template>
+        <style>
+            :host {
+                --app-primary-color: #4285f4;
+                --app-secondary-color: black;
+
+                display: block;
+
+                --vaadin-form-item-label-width: 6em;
+            }
+
+            vaadin-form-item {
+                --vaadin-form-item-label-width: 6em;
+                --vaadin-form-item-label-gap: 1em;
+                --vaadin-form-item-row-gap: 1.25em;
+                width: calc(99.999% - 2em);
+            }
+
+
+        </style>
+
+        <vaadin-form-layout responsive-steps='[{"columns": 1}]'>
+
+            <template is="dom-repeat" items="{{propValueArr}}" as="property">
+
+                <!-- Richtext -->
+                <template is="dom-if" if="[[_typeStringHtml(property.attrProps)]]">
+                      <vaadin-form-item>
+                          <label slot="label">[[property.attrProps.title]]</label>
+                          <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                              <div>{{property.value}}</div>
+                          </template>
+                          <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                              <vaadin-text-field class="full-width"
+                                     value="{{property.value}}"></vaadin-text-field>
+                          </template>
+                      </vaadin-form-item>
+                </template>
+
+                <!-- Base64 -->
+                <template is="dom-if" if="[[_typeStringBase64(property.attrProps)]]">
+                      <vaadin-form-item>
+                          <label slot="label">[[property.attrProps.title]]</label>
+                          <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                              <div>{{property.value}}</div>
+                          </template>
+                          <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                              <vaadin-text-field class="full-width"
+                                     value="{{property.value}}"></vaadin-text-field>
+                          </template>
+                      </vaadin-form-item>
+                    <!-- <img src="{{property.value}}"
+                         width="16px"
+                         height="16px"> -->
+                </template>
+
+                <!-- WbbGl -->
+                <template is="dom-if" if="[[_typeStringWebGL(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!-- Date -->
+                <template is="dom-if" if="[[_typeStringDate(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!-- Uri -->
+                <template is="dom-if" if="[[_typeStringUri(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!-- Enum -->
+                <template is="dom-if" if="[[_typeStringEnum(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-combo-box items="[[property.enum]]" item-value-path="email" item-label-path="email">
+                                <template>
+                                    <div>[[item.email]]</div>
+                                </template>
+                            </vaadin-combo-box>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!-- Query -->
+                <template is="dom-if" if="[[_typeStringQuery(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!--String-->
+                <template is="dom-if" if="[[_typeString(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!--Number-->
+                <template is="dom-if" if="[[_typeNumber(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"
+                                   pattern="[0-9]*"
+                                   prevent-invalid-input></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!-- Boolean -->
+                <template is="dom-if" if="[[_typeBoolean(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <div>{{property.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                   value="{{property.value}}"></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
+                    <!-- <paper-checkbox readonly="[[readOnly]]"
+                                    checked="{{property.value}}">
+                                    [[property.attrProps.title]]
+                    </paper-checkbox> -->
+                </template>
+
+                <!-- Array -->
+                <template is="dom-if" if="[[_typeArray(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <template is="dom-repeat" items="{{property.value}}">
+                            <nq-form-digit prop-value-arr="[[getPropValueArr(property.attrProps.items, item)]]"
+                                           edit-mode="[[editMode]]"></nq-form-digit>
+                        </template>
+                    </vaadin-form-item>
+                </template>
+
+                <!-- Object -->
+                <template is="dom-if" if="[[_typeObject(property.attrProps)]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[property.attrProps.title]]</label>
+                        <nq-form-digit prop-value-arr="[[getPropValueArr(property.attrProps, property.value)]]"
+                                       edit-mode="[[editMode]]"></nq-form-digit>
+                    </vaadin-form-item>
+                </template>
+
+            </template>
+        </vaadin-form-layout>
+
+    </template>
+
+    <script>
+        class NqFormDigit extends Polymer.Element {
+            static get is() {
+                return 'nq-form-digit';
+            }
+
+            static get properties() {
+                return {
+                    editMode:{
+                        type: Boolean,
+                        value: false,
+                        //observer: 'dataChanged'
+                    },
+                    doc:{
+                        type:Object,
+                        value() { return {}; },
+                        observer: 'dataChanged'
+                    },
+                    propValueArr:{
+                        type: Array,
+                        value() { return []; }
+                    }
+                };
+            }
+            getPropValueArr(viewDoc, doc) {
+                if(!viewDoc.properties) return [];
+                var obj = viewDoc.properties;
+                var arr =  Object.keys(obj).map(function(key) {
+                    return {
+                        name: key,
+                        attrProps: obj[key],
+                        value: doc[key]
+                    };
+                });
+                return arr;
+            }
+
+            calculateReadonly(readOnly, editMode){
+                if(readOnly) return true;
+                return !editMode;
+            }
+            _typeStringHtml(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.media &&
+                attrProps.media.mediaType === 'text/html');
+            }
+            _typeStringBase64(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.media &&
+                attrProps.media.binaryEncoding === 'base64' &&
+                attrProps.media.type === 'image/png');
+            }
+            _typeStringWebGL(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.media &&
+                attrProps.media.type === 'image/webgl');
+            }
+            _typeStringDate(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.format &&
+                attrProps.format === 'date-time');
+            }
+            _typeStringUri(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.format &&
+                attrProps.format === 'uri');
+            }
+            _typeStringEnum(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.enum);
+            }
+            _typeStringQuery(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                attrProps.query);
+            }
+            _typeString(attrProps) {
+                return (
+                attrProps.type === 'string' &&
+                !attrProps.media &&
+                !attrProps.format &&
+                !attrProps.enum &&
+                !attrProps.query );
+            }
+            _typeNumber(attrProps) {
+                return attrProps.type === 'number';
+            }
+            _typeBoolean(attrProps) {
+                return attrProps.type === 'boolean';
+            }
+            _typeArray(attrProps) {
+                if(attrProps.type === 'array') debugger;
+                return attrProps.type === 'array';
+            }
+            _typeObject(attrProps) {
+                return attrProps.type === 'object';
+            }
+
+            dataChanged(newValue, oldValue) {
+                console.log('viewDoc:', oldValue, 'to', newValue);
+            }
+        }
+        window.customElements.define(NqFormDigit.is, NqFormDigit);
+    </script>
+</dom-module>

@@ -1,11 +1,14 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="nq-icons.html">
-<link rel="import" href="nq-view-data.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-layout.html">
+<link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-item.html">
 <link rel="import" href="../bower_components/vaadin-text-field/vaadin-text-field.html">
+<link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+<link rel="import" href="nq-icons.html">
+<link rel="import" href="nq-view-data.html">
+<link rel="import" href="nq-form-digit.html">
 
 <!--
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
@@ -28,7 +31,7 @@ yes
                 --app-secondary-color: black;
 
                 display: block;
-                margin: 5px;
+                margin: 10px;
             }
             paper-fab {
                 margin-left: 10px;
@@ -38,10 +41,6 @@ yes
                 right: 25px;
                 bottom: 25px;
             }
-            .backgroundClass {
-                --polymer-quill-html-background-color: transparent;
-            }
-           
 
         </style>
 
@@ -52,107 +51,8 @@ yes
                 data="{{doc}}">
         </firebase-document>
 
-        <vaadin-form-layout>
-            <template is="dom-repeat" doc={{doc}} items="{{viewPropArr}}" as="property">
-                <div>
-                <!-- Input -->
-                <template is="dom-if" if="[[_typeStringHtml(property.attrProps)]]">
-                    <template is="dom-if" if="[[readOnly]]">
-                        <polymer-quill-html-render
-                                id="quilDoc"
-                                class="backgroundClass"
-                                content="[[property.value]]">
-                        </polymer-quill-html-render>
-                    </template>
-                    <template is="dom-if" if="[[!readOnly]]">
-                        <!-- https://github.com/quilljs/quill/issues/904 -->
-                        <!--<polymer-quill
-                                id="quilEditDoc"
-                                class="full"
-                                store-as="html"
-                                toolbar-type="full"
-                                show-html
-                                show-results
-                                content="<h1>hi</h1>">
-                        </polymer-quill>-->
-                    </template>
-                </template>
-                <template is="dom-if" if="[[_typeStringBase64(property.attrProps)]]">
-                    <img src="{{property.value}}"
-                         width="16px"
-                         height="16px">
-                </template>
-                <template is="dom-if" if="[[_typeStringWebGL(property.attrProps)]]">
-                    <div>{{property.value}}</div>
-                </template>
-                <template is="dom-if" if="[[_typeStringDate(property.attrProps)]]">
-                    <div>{{property.value}}</div>
-                </template>
-                <template is="dom-if" if="[[_typeStringUri(property.attrProps)]]">
-                    <div>{{property.value}}</div>
-                </template>
-                <template is="dom-if" if="[[_typeStringEnum(property.attrProps)]]">
-                    <paper-listbox selected="{{property.value}}">
-                        <template is="dom-repeat" items="[[property.attrProps.enum]]" as="enum">
-                            <paper-item>[[enum]]</paper-item>
-                        </template>
-                    </paper-listbox>
-                </template>
-                <template is="dom-if" if="[[_typeStringQuery(property.attrProps)]]">
-                    <div>Query</div>
-                </template>
+        <nq-form-digit doc="{{doc}}" prop-value-arr="[[getPropValueArr(viewDoc, doc)]]" edit-mode="[[editMode]]"></nq-form-digit>
 
-                <!--String-->
-                <template is="dom-if" if="[[_typeString(property.attrProps)]]">
-                    <vaadin-form-item>
-                        <label slot="label">[[property.attrProps.title]]</label>
-                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
-                            {{property.value}}
-                        </template>
-                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
-                            <vaadin-text-field class="full-width"
-                                   value="{{property.value}}"></vaadin-text-field>
-                        </template>
-                    </vaadin-form-item>
-                </template>
-
-                <!--Number-->
-                <template is="dom-if" if="[[_typeNumber(property.attrProps)]]">
-                    <vaadin-form-item>
-                        <label slot="label">[[property.attrProps.title]]</label>
-                        <template is="dom-if" if="[[calculateReadonly(property.attrProps.readOnly,editMode)]]">
-                            {{property.value}}
-                        </template>
-                        <template is="dom-if" if="[[!calculateReadonly(property.attrProps.readOnly,editMode)]]">
-                            <vaadin-text-field class="full-width"
-                                   value="{{property.value}}"
-                                   pattern="[0-9]*"
-                                   prevent-invalid-input></vaadin-text-field>
-                        </template>
-                    </vaadin-form-item>
-                </template>
-
-
-                <template is="dom-if" if="[[_typeBoolean(property.attrProps)]]">
-                    <paper-checkbox readonly="[[readOnly]]"
-                                    checked="{{property.value}}">
-                                    [[property.attrProps.title]]
-                    </paper-checkbox>
-                </template>
-                <template is="dom-if" if="[[_typeArray(property.attrProps)]]">
-                    <div>{{property.value}}</div>
-                </template>
-                <template is="dom-if" if="[[_typeObject(property.attrProps)]]">
-                    <div>{{property.value}}</div>
-                </template>
-                </div>
-            </template>
-        </vaadin-form-layout>
-
-        <p>HI</p>
-        <p>HI</p>
-        <p>HI</p>
-        <p>HI</p>
 
         <paper-fab hidden={{!readOnly}}  icon="nq-icons:edit" on-tap="doEdit" mini></paper-fab>
         <paper-fab hidden={{readOnly}} icon="nq-icons:done" on-tap="doEdit" mini></paper-fab>
@@ -178,17 +78,11 @@ yes
                     viewDoc:{
                         type:Object,
                         value() { return {}; },
-                        //observer: 'dataChanged'
-                    },
-                    viewPropArr:{
-                        type: Array,
-                        value() { return []; },
-                        computed: '_toArray(viewDoc, doc)',
-                        //observer: 'dataChanged'
+                        observer: 'dataChanged'
                     }
                 };
             }
-            _toArray(viewDoc, doc) {
+            getPropValueArr(viewDoc, doc) {
                 if(!viewDoc.properties) return [];
                 var obj = viewDoc.properties;
                 var arr =  Object.keys(obj).map(function(key) {
@@ -202,71 +96,6 @@ yes
             }
             doEdit(e){
                 this.editMode=!this.editMode;
-            }
-            calculateReadonly(readOnly, editMode){
-                if(readOnly) return true;
-                return !editMode;
-            }
-            _typeStringHtml(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.media &&
-                attrProps.media.mediaType === 'text/html');
-            }
-            _typeStringBase64(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.media &&
-                attrProps.media.binaryEncoding === 'base64' &&
-                attrProps.media.type === 'image/png');
-            }
-            _typeStringWebGL(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.media &&
-                attrProps.media.type === 'image/webgl');
-            }
-            _typeStringDate(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.format &&
-                attrProps.format === 'date-time');
-            }
-            _typeStringUri(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.format &&
-                attrProps.format === 'uri');
-            }
-            _typeStringEnum(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.enum);
-            }
-            _typeStringQuery(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.query);
-            }
-            _typeString(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                !attrProps.media &&
-                !attrProps.format &&
-                !attrProps.enum &&
-                !attrProps.query );
-            }
-            _typeNumber(objType) {
-                return objType==='number';
-            }
-            _typeBoolean(objType) {
-                return objType==='boolean';
-            }
-            _typeArray(objType) {
-                return objType==='array';
-            }
-            _typeObject(objType) {
-                return objType==='object';
             }
 
             dataChanged(newValue, oldValue) {
