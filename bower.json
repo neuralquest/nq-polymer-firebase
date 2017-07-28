@@ -28,23 +28,25 @@
     "paper-menu-button": "PolymerElements/paper-menu-button#^2.0.0",
     "paper-item": "PolymerElements/paper-item#^2.0.0",
     "vaadin-combo-box": "vaadin/vaadin-combo-box#2.0.0-alpha3",
-    "vaadin-checkbox": "vaadin/vaadin-checkbox#^1.0.0-alpha1"
+    "vaadin-checkbox": "vaadin/vaadin-checkbox#^1.0.0-alpha1",
+    "vaadin-date-picker": "vaadin/vaadin-date-picker#^1.2.3",
+    "vaadin-radio-button": "vaadin/vaadin-radio-button#^1.0.0-alpha1"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0-prerelease.7"
   },
   "resolutions": {
-    "polymer": "^2.0.0",
-    "webcomponentsjs": "^1.0.0",
-    "iron-resizable-behavior": "1 - 2",
-    "iron-flex-layout": "^2.0.0",
-    "iron-selector": "1 - 2",
-    "iron-icon": "^2.0.0",
-    "iron-iconset-svg": "1 - 2",
+    "polymer": "^2.0.0-rc.1",
+    "webcomponentsjs": "^v1.0.2",
+    "iron-resizable-behavior": "^2.0.0",
+    "iron-flex-layout": "1 - 2",
+    "iron-selector": "^2.0.0",
+    "iron-icon": "1 - 2",
+    "iron-iconset-svg": "^2.0.0",
     "paper-icon-button": "1 - 2",
     "paper-button": "^2.0.0",
-    "iron-a11y-keys-behavior": "1 - 2",
-    "paper-styles": "1 - 2",
+    "iron-a11y-keys-behavior": "^2.0.0",
+    "paper-styles": "^2.0.0",
     "vaadin-combo-box": "2.0.0-alpha3",
     "iron-form": "2.0-preview",
     "iron-form-element-behavior": "^2.0.0",
@@ -52,7 +54,8 @@
     "iron-list": "^2.0.0",
     "iron-validatable-behavior": "^2.0.0",
     "paper-input": "^2.0.0",
-    "iron-a11y-announcer": "^2.0.0"
+    "iron-a11y-announcer": "^2.0.0",
+    "iron-media-query": "^2.0.0"
   },
   "ignore": [
     "**/.*",

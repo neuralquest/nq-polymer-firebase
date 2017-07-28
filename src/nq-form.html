@@ -48,10 +48,14 @@ yes
 
         <firebase-document
                 path="/documents/[[docId]]"
-                data="{{doc}}">
+                data="{{document}}"
+                log>
         </firebase-document>
 
-        <nq-form-digit doc="{{doc}}" prop-value-arr="[[getPropValueArr(viewDoc, doc)]]" edit-mode="[[editMode]]"></nq-form-digit>
+        <nq-form-digit document="{{document}}"
+                       prop-value-arr="[[getPropValueArr(viewDoc, document)]]"
+                       edit-mode="[[editMode]]"
+                       on-docchanged="onDocChanged"></nq-form-digit>
 
 
         <paper-fab hidden={{!readOnly}}  icon="nq-icons:edit" on-tap="doEdit" mini></paper-fab>
@@ -78,16 +82,20 @@ yes
                     viewDoc:{
                         type:Object,
                         value() { return {}; },
-                        observer: 'dataChanged'
+                    },
+                    document:{
+                        type:Object,
+                        value() { return {}; },
+                        notify: true
                     }
                 };
             }
             getPropValueArr(viewDoc, doc) {
-                if(!viewDoc.properties) return [];
+                if(!viewDoc.properties || !doc) return [];
                 var obj = viewDoc.properties;
                 var arr =  Object.keys(obj).map(function(key) {
                     return {
-                        name: key,
+                        path: 'document.'+key,
                         attrProps: obj[key],
                         value: doc[key]
                     };
@@ -98,8 +106,13 @@ yes
                 this.editMode=!this.editMode;
             }
 
+            onDocChanged(event) {
+                //console.log('document:', event.detail);
+                var propValue = event.detail;
+                this.set(propValue.path, propValue.value);
+            }
             dataChanged(newValue, oldValue) {
-                console.log('viewDoc:', oldValue, 'to', newValue);
+                console.log('document:', newValue);
             }
         }
         window.customElements.define(NqForm.is, NqForm);

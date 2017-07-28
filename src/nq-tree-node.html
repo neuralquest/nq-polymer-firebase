@@ -37,7 +37,7 @@ Custom property | Description | Default
 <dom-module id="nq-tree-node">
     <template>
         <style>
-
+/*
             :host(.selected) > .node-container > .node-row {
                 background-color: var(--paper-tree-selected-background-color, rgba(200, 200, 200, 0.5));
                 color: var(--paper-tree-selected-color, inherit);
@@ -46,7 +46,7 @@ Custom property | Description | Default
             :host(.selected) > .node-container > .node-row > #actions {
                 display: inline-block;
             }
-
+*/
             .node-container {
                 white-space: nowrap;
             }
@@ -54,6 +54,9 @@ Custom property | Description | Default
             .node-row {
                 padding-left: 4px;
                 padding-right: 4px;
+            }
+            .node-row.selected {
+                background-color: rgba(200, 200, 200, 0.5);
             }
 
             .node-preicon.collapsed,
@@ -122,8 +125,8 @@ Custom property | Description | Default
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
         <div class="node-container">
-            <div class="node-row">
-                <span class$="{{computeClass(hasChildren,expanded)}}" on-click="toggleChildren"></span>
+            <div class$="{{computeClassSelected(selected)}}">
+                <span class$="{{computeClassPreicon(hasChildren,expanded)}}" on-click="toggleChildren"></span>
                 <iron-icon class="node-icon" src$="{{_computeIcon(nodeQuery)}}" on-click="select"></iron-icon>
                 <span class="node-name" on-click="select">{{_computeName(data)}}</span>
                 <template is="dom-if" if="{{actions}}">
@@ -213,6 +216,10 @@ Custom property | Description | Default
                         type: Boolean,
                         value: false,
                     },
+                    selected: {
+                        type: Boolean,
+                        computed: 'routePathChanged(route.path)'
+                    },
                     docId: {
                         type: "String"
                     },
@@ -241,18 +248,19 @@ Custom property | Description | Default
                 };
 
             }
-
             /**
-             * The `select` event is fired whenever `select()` is called on the node.
+             * Called when the route path changes.
+             * Updates the selected state depending whether our docId occurs in the hash.
              *
-             * @event select
+             * @path the url hash
              */
+            routePathChanged(path){
+                var pathArr = path.split('.');
+                var idx = (this.level+1)*4;
+                var docId = pathArr[idx];
+                return (docId === this.docId);
+            }
 
-            /**
-             * The `toggle` event is fired whenever a tree node is expanded or collapsed.
-             *
-             * @event toggle
-             */
 
             /**
              * Returns the necessary classes.
@@ -260,7 +268,7 @@ Custom property | Description | Default
              * @param {object} change An object containing the property that changed and its value.
              * @return {string} The class name indicating whether the node is open or closed
              */
-            computeClass(hasChildren, expanded) {
+            computeClassPreicon(hasChildren, expanded) {
                 if(hasChildren === 'loading')  return 'node-preicon loading';
                 if(hasChildren === 'yes'){
                     if(expanded) return 'node-preicon expanded';
@@ -268,7 +276,10 @@ Custom property | Description | Default
                 }
                 else return 'node-preicon';
             }
-
+            computeClassSelected(selected) {
+                if(selected) return 'node-row selected';
+                else return 'node-row';
+            }
             /**
              * Compute the necessary node icon.
              *
@@ -309,7 +320,7 @@ Custom property | Description | Default
              * Highlights node as the selected node.
              */
             select(e){
-                this.dispatchEvent(new CustomEvent('select', {bubbles: true, composed: true, detail: this}));
+                //this.dispatchEvent(new CustomEvent('select', {bubbles: true, composed: true, detail: this}));
 
                 //var data = Polymer.dom(event).rootTarget.data;
                 console.log('Selected: ', this.data.name);
@@ -342,12 +353,14 @@ Custom property | Description | Default
              */
             toggleChildren() {
                 this.expanded = !this.expanded;
+                if(this.expanded) document.cookie = this.docId+'=true; expires=Fri, 31 Dec 9999 23:59:59 GMT';
+                else document.cookie = this.docId+'=true; expires=Thu, 01 Jan 1970 00:00:00 GMT'; //remove cookie
             }
 
 
             dataChanged(newValue, oldvalue){
                 //if(!newValue) return;
-                //console.log('dataChanged tree-node', newValue);
+                console.log('dataChanged tree-node', newValue);
             }
             childrenQueryChanged(newValue, oldvalue){
                 if(!newValue) return;

@@ -7,6 +7,9 @@
 <link rel="import" href="../bower_components/vaadin-text-field/vaadin-text-field.html">
 <link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 <link rel="import" href="../bower_components/vaadin-checkbox/vaadin-checkbox.html">
+<link rel="import" href="../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<link rel="import" href="../bower_components/vaadin-radio-button/vaadin-radio-button.html">
+<link rel="import" href="../bower_components/vaadin-radio-button/vaadin-radio-button-group.html">
 
 <!--
 <link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
@@ -39,7 +42,15 @@ yes
                 --vaadin-form-item-row-gap: 1.25em;
                 width: calc(99.999% - 2em);
             }
-
+            label {
+                font-weight: bold;
+            }
+            .nest{
+                outline-color: rgba(0, 0, 255, 0.11);
+                outline-style: solid;
+                outline-width: 1px;
+                padding: 5px;
+            }
 
         </style>
 
@@ -56,7 +67,8 @@ yes
                           </template>
                           <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
                               <vaadin-text-field class="full-width"
-                                     value="{{propValue.value}}"></vaadin-text-field>
+                                     value="{{propValue.value}}"
+                                     on-value-changed="onValueChanged"></vaadin-text-field>
                           </template>
                       </vaadin-form-item>
                 </template>
@@ -99,11 +111,10 @@ yes
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
-                            <div>{{propValue.value}}</div>
+                            <div>{{computeDateString(propValue.value)}}</div>
                         </template>
                         <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
-                            <vaadin-text-field class="full-width"
-                                   value="{{propValue.value}}"></vaadin-text-field>
+                            <vaadin-date-picker value="{{propValue.value}}"></vaadin-date-picker>
                         </template>
                     </vaadin-form-item>
                 </template>
@@ -130,9 +141,18 @@ yes
                             <div>{{propValue.value}}</div>
                         </template>
                         <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
-                            <vaadin-combo-box items="[[propValue.attrProps.enum]]"
-                                              value="{{propValue.value}}">
-                            </vaadin-combo-box>
+                            <template is="dom-if" if="[[computeLengthLessThan(propValue.attrProps.enum,5)]]">
+                                <vaadin-radio-button-group name="radio-group" value="{{propValue.value}}">
+                                    <template is="dom-repeat" items="{{propValue.attrProps.enum}}">
+                                        <vaadin-radio-button value="[[item]]">[[item]]</vaadin-radio-button>
+                                    </template>
+                                </vaadin-radio-button-group>
+                            </template>
+                            <template is="dom-if" if="[[!computeLengthLessThan(propValue.attrProps.enum,5)]]">
+                                <vaadin-combo-box items="[[propValue.attrProps.enum]]"
+                                                  value="{{propValue.value}}">
+                                </vaadin-combo-box>
+                            </template>
                         </template>
                     </vaadin-form-item>
                 </template>
@@ -171,7 +191,9 @@ yes
                         </template>
                         <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
-                                   value="{{propValue.value}}"></vaadin-text-field>
+                                               value="{{propValue.value}}"
+                                               on-value-changed="onValueChanged"
+                                               class="full-width"></vaadin-text-field>
                         </template>
                     </vaadin-form-item>
                 </template>
@@ -203,10 +225,6 @@ yes
                             <vaadin-checkbox value="{{propValue.value}}"></vaadin-checkbox>
                         </template>
                     </vaadin-form-item>
-                    <!-- <paper-checkbox readonly="[[readOnly]]"
-                                    checked="{{propValue.value}}">
-                                    [[propValue.attrProps.title]]
-                    </paper-checkbox> -->
                 </template>
 
                 <!-- Array -->
@@ -214,7 +232,8 @@ yes
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-repeat" items="{{propValue.value}}">
-                            <nq-form-digit prop-value-arr="[[computePropValueArr(propValue.attrProps.items, item)]]"
+                            <nq-form-digit class="nest"
+                                           prop-value-arr="[[computePropValueItemArr(propValue, item, index)]]"
                                            edit-mode="[[editMode]]"></nq-form-digit>
                         </template>
                     </vaadin-form-item>
@@ -224,7 +243,8 @@ yes
                 <template is="dom-if" if="[[_typeObject(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <nq-form-digit prop-value-arr="[[computePropValueArr(propValue.attrProps, propValue.value)]]"
+                        <nq-form-digit class="nest"
+                                       prop-value-arr="[[computePropValueArr(propValue.attrProps, propValue.value)]]"
                                        edit-mode="[[editMode]]"></nq-form-digit>
                     </vaadin-form-item>
                 </template>
@@ -242,6 +262,7 @@ yes
 
             static get properties() {
                 return {
+
                     editMode:{
                         type: Boolean,
                         value: false,
@@ -255,8 +276,37 @@ yes
                     propValueArr:{
                         type: Array,
                         value() { return []; }
+                    },
+                    document:{
+                        type:Object,
+                        value() { return {}; },
+                        notify: true
                     }
                 };
+            }
+
+            static get observers() {
+                return [
+                    'propValueArrChanged(propValueArr.*)'
+                ];
+            }
+            propValueArrChanged(changeRecord){
+                //console.log('path: ' + changeRecord.path);
+                //console.log('value: ' + changeRecord.value);
+                //console.dir(changeRecord.base);
+                var idxArr = changeRecord.path.split('.');
+                if(idxArr.length>1) {
+                    var idx = idxArr[1];
+                    var propValue = changeRecord.base[idx];
+
+                    if(propValue.path === 'document.title') {
+                        console.log('path', propValue.path);
+                        console.log('value', propValue.value);
+                        //this.set(propValue.path, propValue.value);
+                        //this.notifyPath('document');
+                        this.dispatchEvent(new CustomEvent('docchanged', {bubbles: true, composed: true, detail: propValue}));
+                    }
+                }
             }
             computeReadonly(readOnly, editMode){
                 return !editMode; //HACK
@@ -264,12 +314,24 @@ yes
                 return !editMode;
             }
 
-            computePropValueArr(viewDoc, doc) {
-                if(!viewDoc.properties) return [];
-                var obj = viewDoc.properties;
+            computePropValueItemArr(propValue, doc, index) {
+                if(!propValue.attrProps.items.properties) return [];
+                var properties = propValue.attrProps.items.properties;
+                var arr =  Object.keys(properties).map(function(key) {
+                    return {
+                        path: propValue.path+'.'+index+'.'+key,
+                        attrProps: properties[key],
+                        value: doc[key]
+                    };
+                });
+                return arr;
+            }
+            computePropValueArr(attrProps, doc) {
+                if(!attrProps.properties) return [];
+                var obj = attrProps.properties;
                 var arr =  Object.keys(obj).map(function(key) {
                     return {
-                        name: key,
+                        path: attrProps.path+'.'+key,
                         attrProps: obj[key],
                         value: doc[key]
                     };
@@ -278,6 +340,13 @@ yes
             }
             computeBoolString(value){
                 return value?'true':'false';
+            }
+            computeDateString(value){
+                var date = Date.parse(value);
+                return date.toLocaleDateString();
+            }
+            computeLengthLessThan(arr, length){
+                return arr.length<length;
             }
             computeLabelValueArr(optionsSplices, query) {
                 if(!optionsSplices) return [];
@@ -307,6 +376,11 @@ yes
                 //console.log('computeEqualTo: ',value);
                 return value;
             }
+            onValueChanged(event){
+                //var target = event.detail;
+                //this.set()
+            }
+
 
 
             _typeStringHtml(attrProps) {
