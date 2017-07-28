@@ -79,13 +79,13 @@ yes
                           <label slot="label">[[propValue.attrProps.title]]</label>
                           <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
                               <img src="{{propValue.value}}"
-                                   width="16px"
-                                   height="16px">
+                                   width="24px"
+                                   height="24px">
                           </template>
                           <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
                               <img src="{{propValue.value}}"
-                                   width="16px"
-                                   height="16px">
+                                   width="24px"
+                                   height="24px">
                               <vaadin-text-field class="full-width"
                                      value="{{propValue.value}}"></vaadin-text-field>
                           </template>
