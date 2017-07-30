@@ -62,10 +62,10 @@ yes
                 <template is="dom-if" if="[[_typeStringHtml(propValue.attrProps)]]">
                       <vaadin-form-item>
                           <label slot="label">[[propValue.attrProps.title]]</label>
-                          <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
-                              <div>{{propValue.value}}</div>
+                          <template is="dom-if" if="[[(propValue.attrProps.readOnly,editMode)]]">
+                              <div inner-h-t-m-l="{{propValue.value}}"></div>
                           </template>
-                          <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                          <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                               <vaadin-text-field class="full-width"
                                      value="{{propValue.value}}"
                                      on-value-changed="onValueChanged"></vaadin-text-field>
@@ -77,12 +77,12 @@ yes
                 <template is="dom-if" if="[[_typeStringBase64(propValue.attrProps)]]">
                       <vaadin-form-item>
                           <label slot="label">[[propValue.attrProps.title]]</label>
-                          <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                          <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                               <img src="{{propValue.value}}"
                                    width="24px"
                                    height="24px">
                           </template>
-                          <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                          <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                               <img src="{{propValue.value}}"
                                    width="24px"
                                    height="24px">
@@ -96,10 +96,10 @@ yes
                 <template is="dom-if" if="[[_typeStringWebGL(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <div>{{propValue.value}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
                                    value="{{propValue.value}}"></vaadin-text-field>
                         </template>
@@ -110,10 +110,10 @@ yes
                 <template is="dom-if" if="[[_typeStringDate(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <div>{{computeDateString(propValue.value)}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-date-picker value="{{propValue.value}}"></vaadin-date-picker>
                         </template>
                     </vaadin-form-item>
@@ -123,10 +123,10 @@ yes
                 <template is="dom-if" if="[[_typeStringUri(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <div>{{propValue.value}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
                                    value="{{propValue.value}}"></vaadin-text-field>
                         </template>
@@ -137,10 +137,10 @@ yes
                 <template is="dom-if" if="[[_typeStringEnum(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <div>{{propValue.value}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <template is="dom-if" if="[[computeLengthLessThan(propValue.attrProps.enum,5)]]">
                                 <vaadin-radio-button-group name="radio-group" value="{{propValue.value}}">
                                     <template is="dom-repeat" items="{{propValue.attrProps.enum}}">
@@ -161,14 +161,14 @@ yes
                 <template is="dom-if" if="[[_typeStringQuery(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <firebase-document
                                     path="/documents/[[propValue.value]]"
                                     data="{{queryDoc}}">
                             </firebase-document>
                             <div>{{queryDoc.name}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <firebase-query
                                     path="/documents"
                                     order-by-child="[[computeOrderByChild(propValue.attrProps.query)]]"
@@ -186,10 +186,10 @@ yes
                 <template is="dom-if" if="[[_typeString(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <div>{{propValue.value}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
                                                value="{{propValue.value}}"
                                                on-value-changed="onValueChanged"
@@ -202,10 +202,10 @@ yes
                 <template is="dom-if" if="[[_typeNumber(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <div>{{propValue.value}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
                                    value="{{propValue.value}}"
                                    pattern="[0-9]*"
@@ -218,10 +218,10 @@ yes
                 <template is="dom-if" if="[[_typeBoolean(propValue.attrProps)]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
-                        <template is="dom-if" if="[[computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <div>{{computeBoolString(propValue.value)}}</div>
                         </template>
-                        <template is="dom-if" if="[[!computeReadonly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-checkbox value="{{propValue.value}}"></vaadin-checkbox>
                         </template>
                     </vaadin-form-item>
@@ -308,7 +308,7 @@ yes
                     }
                 }
             }
-            computeReadonly(readOnly, editMode){
+            computeReadOnly(readOnly, editMode){
                 return !editMode; //HACK
                 if(readOnly) return true;
                 return !editMode;

@@ -35,7 +35,6 @@ yes
             }
         </style>
 
-        <!--<app-scrollpos-control selected="{{selected}}"></app-scrollpos-control>-->
         <app-location route="{{route}}" use-hash-as-path></app-location>
 
         <firebase-document
@@ -43,10 +42,10 @@ yes
                 data="{{tabs}}">
         </firebase-document>
 
-        <template is="dom-if" if="{{hasMoreThanOne}}">
+        <template is="dom-if" if="{{lengthMoreThanOne(tabs)}}">
             <!-- More than one tab, so draw tab bar-->
             <div class="layout vertical fit">
-                <paper-tabs selected="{{selected}}" scrollable>
+                <paper-tabs selected="{{selected}}" scrollable on-selected-changed="onSelectedChanged">
                     <template is="dom-repeat" items="{{tabs}}" as="tab">
                         <paper-tab>[[tab.name]]</paper-tab>
                     </template>
@@ -55,11 +54,11 @@ yes
                     <template is="dom-repeat" items="{{tabs}}" as="tab">
                         <div>
                             <!-- Tab content -->
-                            <template is="dom-if" if="{{_hasSubPage(tab)}}">
+                            <template is="dom-if" if="{{hasSubPage(tab)}}">
                                 <!-- This tab has a sub-page -->
                                 <nq-layout class="fit"  level="[[level]]" page-id="[[tab.pageId]]"></nq-layout>
                             </template>
-                            <template is="dom-if" if="{{_notHasSubPage(tab)}}">
+                            <template is="dom-if" if="{{!hasSubPage(tab)}}">
                                 <!-- This tab has widgets -->
                                 <nq-widgets class="fit" level="[[level]]" widgets="[[tab.widgets]]"></nq-widgets>
                             </template>
@@ -70,13 +69,13 @@ yes
         </template>
 
 
-        <template is="dom-if" if="{{hasOne}}">
+        <template is="dom-if" if="{{!lengthMoreThanOne(tabs)}}">
             <!-- Only one tab, so no tab bar -->
-            <template is="dom-if" if="{{_hasSubPage(tabs.0)}}">
+            <template is="dom-if" if="{{hasSubPage(tabs.0)}}">
                 <!-- This tab has a sub-page -->
                 <nq-layout level="[[level]]" page-id="[[tabs.0.pageId]]"></nq-layout>
             </template>
-            <template is="dom-if" if="{{_notHasSubPage(tabs.0)}}">
+            <template is="dom-if" if="{{!hasSubPage(tabs.0)}}">
                 <!-- This tab has widgets -->
                 <nq-widgets level="[[level]]" widgets="[[tabs.0.widgets]]"></nq-widgets>
             </template>
@@ -108,53 +107,48 @@ yes
                     selected: {
                         type: Number,
                         value: 0,
-                        observer: '_updateRoute'
+                        //observer: '_updateRoute',
+                        computed: 'routePathChanged(route.path)'
                     },
-                    hasMoreThanOne: {
-                        type: String,
-                        value: false,
-                        computed: '_hasMoreThanOne(tabs)'
-                        //observer: '_pageChanged'
-                    }
-                    ,
-                    hasOne: {
-                        type: String,
-                        value: false,
-                        computed: '_hasOne(tabs)'
-                        //observer: '_pageChanged'
-                    }
+                    selectedTabNum: {
+                        type: Number,
+                    },
                 };
             }
-            _hasMoreThanOne(tabs) {
-                if(tabs.length==0) return false;
-                //console.log('_hasMoreThanOne:');
+
+            /**
+             * Called when the route path changes.
+             * Updates the selected tab depending on what occurs in the hash.
+             *
+             * @parm the url hash
+             */
+            routePathChanged(path){
+                var pathArr = path.split('.');
+                var idx = (this.level)*4+2;
+                var tabNum = pathArr[idx];
+                return parseInt(tabNum);
+            }
+
+            lengthMoreThanOne(tabs) {
+                if(!tabs) return false;
                 return tabs.length>1;
             }
-            _hasOne(tabs) {
-                if(tabs.length==0) return false;
-                //console.log('_hasOne:');
-                return tabs.length==1;
-            }
-            _hasSubPage(tab) {
+
+            hasSubPage(tab) {
+                if(!tab) return false;
                 //console.log('_hasSubPage:', tab.name, tab.pageId);
                 return tab.pageId?true:false;
             }
-            _notHasSubPage(tab) {
-                //console.log('_notHasSubPage:', tab.name, tab.pageId, tab.pageId?false:true);
-                return tab.pageId?false:true;
-            }
-            _updateRoute(newValue, oldValue) {
-                if(!this.route) return;
-                //console.log('_updatedRoute:', oldValue, newValue);
+            onSelectedChanged(event) {
                 var pathArr = this.route.path.split('.');
                 var idx = (this.level)*4+2;
-                pathArr[idx] = newValue;
+                pathArr[idx] = event.detail.value;
                 var newPath = pathArr.join('.');
                 this.set('route.path', newPath);
             }
 
             dataChanged(newValue, oldValue) {
-                //console.log('TABS level', this.level, 'to:', newValue);
+                console.log('TABS level', this.level, 'to:', newValue);
             }
         }
         window.customElements.define(NqTabs.is, NqTabs);

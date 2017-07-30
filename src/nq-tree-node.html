@@ -250,7 +250,8 @@ Custom property | Description | Default
             }
             /**
              * Called when the route path changes.
-             * Updates the selected state depending whether our docId occurs in the hash.
+             * Updates the the select state depending whether our docId occurs in the hash.
+             * This will trigger row highlight.
              *
              * @path the url hash
              */
@@ -368,7 +369,7 @@ Custom property | Description | Default
 
             dataChanged(newValue, oldvalue){
                 //if(!newValue) return;
-                console.log('dataChanged tree-node', newValue);
+                //console.log('dataChanged tree-node', newValue);
             }
             childrenQueryChanged(newValue, oldvalue){
                 if(!newValue) return;

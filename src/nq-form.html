@@ -36,10 +36,11 @@ yes
             paper-fab {
                 margin-left: 10px;
                 margin-right: 10px;
-                margin-bottom: 70px;
+                margin-bottom: 50px;
                 position: fixed;
                 right: 25px;
                 bottom: 25px;
+                background-color: #4285f4;
             }
 
         </style>
@@ -49,7 +50,7 @@ yes
         <firebase-document
                 path="/documents/[[docId]]"
                 data="{{document}}"
-                log>
+                >
         </firebase-document>
 
         <nq-form-digit document="{{document}}"
