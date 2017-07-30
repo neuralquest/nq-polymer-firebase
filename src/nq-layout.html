@@ -59,7 +59,7 @@ yes
                     <!-- Navigation content -->
                     <nq-tabs class="navpane" level="[[level]]" page-id="[[pageId]]"></nq-tabs>
                     <!-- Splitter -->
-                    <super-splitter class="splitterBg" direction="left" ></super-splitter>
+                    <super-splitter id="splitter" class="splitterBg" direction="left" on-iron-resize="onIronResize"></super-splitter>
                     <!-- Main content -->
                     <nq-tabs class="flex" level="[[computeLevelInc(level)]]" page-id="[[computePageIdInc(level, route)]]"></nq-tabs>
                 </div>
@@ -83,7 +83,7 @@ yes
                 return {
                     pageId: {
                         type: String,
-                        observer: 'dataChanged'
+                        observer: 'pageIdChanged'
                     },
                     level: {
                         type: Number,
@@ -128,6 +128,22 @@ yes
                 //console.log('_noDivider:');
                 return page.divider != 'Vertical';
             }
+
+            onIronResize(e) {
+                if(!this.pageId) return;
+                var width = e.currentTarget.size;
+                document.cookie = 'slider_'+this.pageId + '='+width+'; expires=Fri, 31 Dec 9999 23:59:59 GMT';
+            }
+
+            pageIdChanged(pageId) {
+                if(!pageId) return;
+                var cookie = document.cookie.match('(^|;)\\s*' + 'slider_'+pageId + '\\s*=\\s*([^;]+)');
+                //TODO find the splitter and set its size
+                //if(cookie) this.$.splitter.size = parseInt(cookie[2]);
+            }
+
+
+
 
             _levelChanged(newValue, oldValue) {
                 //console.log('level from:', oldValue, 'to:', newValue);

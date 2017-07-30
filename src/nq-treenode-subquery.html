@@ -29,7 +29,7 @@
         </firebase-query>
 
         <div hidden$="[[!expanded]]">
-            <template is="dom-repeat" items="[[children]]">
+            <template is="dom-repeat" items="[[children]]" sort="sortByName">
                 <template is="dom-if" if="[[expanded]]">
                     <nq-tree-node id="root"
                                   data="[[item]]"
@@ -37,7 +37,8 @@
                                   node-query="[[subQuery]]"
                                   children-query="[[computeChildrenQuery(viewQuery)]]"
                                   view-query="[[viewQuery]]"
-                                  doc-id="[[item.$key]]"></nq-tree-node>
+                                  doc-id="[[item.$key]]"
+                                  view-id="[[viewId]"></nq-tree-node>
                 </template>
             </template>
         </div>
@@ -54,14 +55,7 @@
                 return {
 
                     /**
-                     * Data hold by this node (contains the children).
-                     *
-                     * Specific data:
-                     *
-                     * - `data.name`: string representing the node name.
-                     * - `data.icon`: string telling which icon to use (default to 'folder' icon).
-                     * - `data.open`: boolean telling whether the node is expanded or not.
-                     * - `data.children` array containing the children of the node.
+                     * The Query that this element will execute. (one of the View Query array)
                      */
                     subQuery: {
                         type: Object,
@@ -70,6 +64,11 @@
                         },
                         observer: 'subQueryChanged'
                     },
+
+                    /**
+                     * The overall query array we got from the view.
+                     * Used in determining the query for the next level of child nodes
+                     */
                     viewQuery: {
                         type: 'Array',
                         value () {
@@ -77,14 +76,35 @@
                         },
                         observer: 'viewQueryChanged'
                     },
+
+                    /**
+                     * The level we're at in terms of nested pages.
+                     * Use in interpreting the location hash
+                     */
                     level: {
                         type: Number
                     },
+
+                    /**
+                     * The id of the document that this node is displaying.
+                     */
                     docId: {
                         type: "String",
                         value: null,
                         observer: 'docIdChanged'
                     },
+
+                    /**
+                     * The id of the view used in construction for the tree.
+                     * Only used to make the expanded cookie more specific
+                     */
+                    viewId: {
+                        type: "String"
+                    },
+
+                    /**
+                     * The children that came about as a result of executing the sub query
+                     */
                     children: {
                         type: 'Array',
                         value: function() {
@@ -93,10 +113,18 @@
                         notify: true
                         //observer: 'childrenChanged'
                     },
+
+                    /**
+                     * If the there are children we notify our parent element so it can adjust the pre-icon
+                     */
                     hasChildren: {
                         type: "String",
                         notify: true
                     },
+
+                    /**
+                     * The parent element tels us if we should be displaying our children
+                     */
                     expanded: {
                         type: "Boolean"
                     }
@@ -141,6 +169,14 @@
                 //console.log('childrenLengthChanged: ', this.subQuery.queryName, length);
                 if(length>0) this.hasChildren = 'yes';
                 else if(this.hasChildren === 'loading') this.hasChildren = 'no';
+            }
+
+            sortByName(v1, v2) {
+                //TODO use query to determine name/title
+                var val1 = v1.name, val2 = v2.name;
+                if (val1 === val2) return 0;
+                if (val1 > val2) return 1;
+                if (val1 < val2) return -1;
             }
 
 

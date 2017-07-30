@@ -74,7 +74,7 @@ Custom property | Description | Default
 
             .node-preicon.loading:before {
                 content: '';
-                background:url('loading.svg');
+                background:url('../images/loading.svg');
                 background-size:cover;
                 position:absolute;
                 width:24px;
@@ -127,7 +127,7 @@ Custom property | Description | Default
         <div class="node-container">
             <div class$="{{computeClassSelected(selected)}}">
                 <span class$="{{computeClassPreicon(hasChildren,expanded)}}" on-click="toggleChildren"></span>
-                <iron-icon class="node-icon" src$="{{_computeIcon(nodeQuery)}}" on-click="select"></iron-icon>
+                <iron-icon class="node-icon" src$="{{computeIcon(nodeQuery, data, classIcon)}}" on-click="select"></iron-icon>
                 <span class="node-name" on-click="select">{{_computeName(data)}}</span>
                 <template is="dom-if" if="{{actions}}">
                     <paper-menu-button id="actions">
@@ -149,7 +149,8 @@ Custom property | Description | Default
                                               level="[[level]]"
                                               doc-id="[[docId]]"
                                               has-children="{{hasChildren}}"
-                                              expanded="[[expanded]]"></nq-treenode-subquery>
+                                              expanded="[[expanded]]"
+                                              view-id="[[viewId]"></nq-treenode-subquery>
                     </div>
                 </template>
             </ul>
@@ -187,6 +188,15 @@ Custom property | Description | Default
                     level: {
                         type: Number
                     },
+
+                    /**
+                     * The id of the view used in construction for the tree.
+                     * Only used to make the expanded cookie more specific
+                     */
+                    viewId: {
+                        type: "String"
+                    },
+
                     nodeQuery: {
                         type: Object,
                         value () {
@@ -220,6 +230,9 @@ Custom property | Description | Default
                         type: Boolean,
                         computed: 'routePathChanged(route.path)'
                     },
+                    classIcon: {
+                        type: String,
+                    },
                     docId: {
                         type: "String"
                     },
@@ -239,10 +252,10 @@ Custom property | Description | Default
                                 "label": "Add Child",
                                 "event": "addChild"
                             },
-                                {
-                                    "label": "Delete",
-                                    "event": "delete"
-                                }];
+                            {
+                                "label": "Delete",
+                                "event": "delete"
+                            }];
                         }
                     }
                 };
@@ -287,11 +300,21 @@ Custom property | Description | Default
              * @param {string=folder} an icon name.
              * @return {string} the computed icon name.
              */
-            _computeIcon(nodeQuery) {
-                if(!nodeQuery) return 'folder';
+            computeIcon(nodeQuery, data, classIcon) {
+                if(classIcon) return classIcon;
+                if(!nodeQuery || !data) return '/images/circle.svg';
                 if(nodeQuery.icon) return nodeQuery.icon;
-                else if (this.data.icon) return this.data.icon;
-                return 'folder';
+                else if(this.data.icon) return this.data.icon;
+                else if(this.data.docType === 'object') {
+                    var database = firebase.database();
+                    // Get the parent class
+                    database.ref('/documents/' + this.data.classId).once('value').then(function (snapshot) {
+                        var parentClass = snapshot.val();
+                        //Trigger computeIcon again, this time there will be a class icon
+                        if(parentClass && parentClass.icon) this.classIcon = parentClass.icon;
+                    }.bind(this));
+                }
+                return '/images/circle.svg';
             }
             _computeName(data) {
                 return data.name ? data.name : data.title;
@@ -337,15 +360,15 @@ Custom property | Description | Default
             toggleChildren() {
                 this.expanded = !this.expanded;
                 if(this.docId) {
-                    if (this.expanded) document.cookie = this.docId + '=true; expires=Fri, 31 Dec 9999 23:59:59 GMT';
-                    else document.cookie = this.docId + '=true; expires=Thu, 01 Jan 1970 00:00:00 GMT'; //remove cookie
+                    if(this.expanded) document.cookie = 'tree_' + this.viewId + this.docId + '=true; expires=Fri, 31 Dec 9999 23:59:59 GMT';
+                    else document.cookie = 'tree_' + this.viewId + this.docId + '=true; expires=Thu, 01 Jan 1970 00:00:00 GMT'; //remove cookie
                 }
             }
 
             ready() {
                 super.ready();
                 if(this.docId) {
-                    var cookie = document.cookie.match('(^|;)\\s*' + this.docId + '\\s*=\\s*([^;]+)');
+                    var cookie = document.cookie.match('(^|;)\\s*' + 'tree_' + this.viewId + this.docId + '\\s*=\\s*([^;]+)');
                     if(cookie && (cookie[2]) === 'true') this.expanded = true;
                 }
             }

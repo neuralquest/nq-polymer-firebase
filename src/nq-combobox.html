@@ -1,0 +1,98 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="nq-combobox">
+    <template>
+        <style include="shared-styles">
+            :host {
+                display: block;
+            }
+        </style>
+
+        <template is="dom-if" if="[[editMode]]">
+            <firebase-document
+                    path="/documents/[[docId]]"
+                    data="{{document}}">
+            </firebase-document>
+            <div>{{document.name}}</div>
+        </template>
+        <template is="dom-if" if="[[!editMode]]">
+            <firebase-query
+                    path="/documents"
+                    order-by-child="[[computeOrderByChild(query)]]"
+                    equal-to="[[computeEqualTo(query)]]"
+                    data="{{options}}">
+            </firebase-query>
+            <vaadin-combo-box items="[[computeLabelValueArr(options.splices, query)]]"
+                              value="{{value}}">
+            </vaadin-combo-box>
+        </template>
+    </template>
+
+    <script>
+        class NqCombobox extends Polymer.Element {
+            static get is() { return 'nq-combobox'; }
+
+            static get properties() {
+                return {
+                    docId:{
+                        type: String
+                    },
+                    query:{
+                        type:Object,
+                        value() { return {}; },
+                    },
+                    editMode:{
+                        type: Boolean,
+                        value: false,
+                    },
+                    value:{
+                        type: String,
+                        notify: true
+                    },
+                    document:{
+                        type:Object,
+                        value() { return {}; },
+                    },
+                    options:{
+                        type:Array,
+                        value() { return []; },
+                    },
+                };
+            }
+            computeOrderByChild(query) {
+                if(query.from) return 'classId';
+                if(!query || !query.where || !query.where.docProp) return null;
+                var value = query.where.docProp;
+                //console.log('computeOrderByChild: ',value);
+                return value;
+            }
+
+            computeEqualTo(query) {
+                if(query.from) return query.from;
+                if(!query || !query.where || !query.where.value) return null;
+                var value = query.where.value;
+                if(value == '$parent._id') value = this.docId;
+                //console.log('computeEqualTo: ',value);
+                return value;
+            }
+
+            computeLabelValueArr(optionsSplices, query) {
+                if(!optionsSplices) return [];
+                var options = optionsSplices.indexSplices[0].object;
+                var arr =  Object.keys(options).map(function(key) {
+                    return {
+                        label: options[key].name,
+                        value: options[key].$key
+                    };
+                });
+                return arr;
+            }
+        }
+
+        window.customElements.define(NqCombobox.is, NqCombobox);
+    </script>
+</dom-module>
