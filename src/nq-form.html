@@ -1,11 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-layout.html">
-<link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-item.html">
-<link rel="import" href="../bower_components/vaadin-text-field/vaadin-text-field.html">
-<link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 <link rel="import" href="nq-icons.html">
 <link rel="import" href="nq-view-data.html">
 <link rel="import" href="nq-form-digit.html">
@@ -45,15 +42,17 @@ yes
 
         </style>
 
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
         <nq-view-data view-id="{{viewId}}" view-doc="{{viewDoc}}"></nq-view-data>
 
         <firebase-document
                 path="/documents/[[docId]]"
-                data="{{document}}"
-                >
+                data="{{document}}">
         </firebase-document>
 
-        <nq-form-digit document="{{document}}"
+        <nq-form-digit doc-id="{{docId}}"
                        prop-value-arr="[[getPropValueArr(viewDoc, document)]]"
                        edit-mode="[[editMode]]"
                        on-docchanged="onDocChanged"></nq-form-digit>
@@ -74,7 +73,10 @@ yes
                 return {
                     level: Number,
                     viewId: String,
-                    docId: String,
+                    docId:{
+                        type: String,
+                        computed: 'routePathChanged(route.path)'
+                    },
                     editMode:{
                         type: Boolean,
                         value: false,
@@ -91,6 +93,19 @@ yes
                     }
                 };
             }
+            /**
+             * Called when the route path changes.
+             * Updates the the select state depending whether our docId occurs in the hash.
+             * This will trigger row highlight.
+             *
+             * @path the url hash
+             */
+            routePathChanged(path){
+                var pathArr = path.split('.');
+                var idx = (this.level)*4;
+                return pathArr[idx];
+            }
+
             getPropValueArr(viewDoc, doc) {
                 if(!viewDoc.properties || !doc) return [];
                 var obj = viewDoc.properties;
@@ -98,9 +113,9 @@ yes
                     return {
                         path: 'document.'+key,
                         attrProps: obj[key],
-                        value: doc[key]
+                        value: key==='_key'?this.docId:doc[key]
                     };
-                });
+                }.bind(this));
                 return arr;
             }
             doEdit(e){

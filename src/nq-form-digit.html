@@ -1,14 +1,11 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
-<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
-<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-layout.html">
 <link rel="import" href="../bower_components/vaadin-form-layout/vaadin-form-item.html">
 <link rel="import" href="../bower_components/vaadin-text-field/vaadin-text-field.html">
 <link rel="import" href="../bower_components/vaadin-combo-box/vaadin-combo-box.html">
 <link rel="import" href="../bower_components/vaadin-checkbox/vaadin-checkbox.html">
 <link rel="import" href="../bower_components/vaadin-date-picker/vaadin-date-picker.html">
-<link rel="import" href="../bower_components/vaadin-radio-button/vaadin-radio-button.html">nq-combobox
+<link rel="import" href="../bower_components/vaadin-radio-button/vaadin-radio-button.html">
 <link rel="import" href="../bower_components/vaadin-radio-button/vaadin-radio-button-group.html">
 <link rel="import" href="nq-combobox.html">
 
@@ -43,6 +40,9 @@ yes
                 --vaadin-form-item-row-gap: 1.25em;
                 width: calc(99.999% - 2em);
             }
+            vaadin-combo-box {
+                max-width: 300px;
+            }
             label {
                 font-weight: bold;
             }
@@ -68,8 +68,10 @@ yes
                           </template>
                           <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                               <vaadin-text-field class="full-width"
-                                     value="{{propValue.value}}"
-                                     on-value-changed="onValueChanged"></vaadin-text-field>
+                                                 value="{{propValue.value}}"
+                                                 minlength="[[propValue.minLength]]"
+                                                 maxlength="[[propValue.maxLength]]"
+                                                 prevent-invalid-input></vaadin-text-field>
                           </template>
                       </vaadin-form-item>
                 </template>
@@ -88,7 +90,10 @@ yes
                                    width="24px"
                                    height="24px">
                               <vaadin-text-field class="full-width"
-                                     value="{{propValue.value}}"></vaadin-text-field>
+                                                 value="{{propValue.value}}"
+                                                 minlength="[[propValue.minLength]]"
+                                                 maxlength="[[propValue.maxLength]]"
+                                                 prevent-invalid-input></vaadin-text-field>
                           </template>
                       </vaadin-form-item>
                 </template>
@@ -129,7 +134,10 @@ yes
                         </template>
                         <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
-                                   value="{{propValue.value}}"></vaadin-text-field>
+                                               value="{{propValue.value}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
                         </template>
                     </vaadin-form-item>
                 </template>
@@ -163,31 +171,12 @@ yes
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <nq-combobox
-                                doc-id="[[docId]]"
                                 query="[[propValue.attrProps.query]]"
-                                readOnly="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]"
-                                value="{{propValue.value}}">
+                                doc-id="[[docId]]"
+                                read-only="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]"
+                                value="{{propValue.value}}"
+                                noLabelFloat>
                         </nq-combobox>
-                        <!--
-                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
-                            <firebase-document
-                                    path="/documents/[[propValue.value]]"
-                                    data="{{queryDoc}}">
-                            </firebase-document>
-                            <div>{{queryDoc.name}}</div>
-                        </template>
-                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
-                            <firebase-query
-                                    path="/documents"
-                                    order-by-child="[[computeOrderByChild(propValue.attrProps.query)]]"
-                                    equal-to="[[computeEqualTo(propValue.attrProps.query)]]"
-                                    data="{{options}}" log>
-                            </firebase-query>
-                            <vaadin-combo-box items="[[computeLabelValueArr(options.splices, propValue.attrProps.query)]]"
-                                              value="{{propValue.value}}">
-                            </vaadin-combo-box>
-                        </template>
-                        -->
                     </vaadin-form-item>
                 </template>
 
@@ -201,8 +190,9 @@ yes
                         <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
                                                value="{{propValue.value}}"
-                                               on-value-changed="onValueChanged"
-                                               class="full-width"></vaadin-text-field>
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
                         </template>
                     </vaadin-form-item>
                 </template>
@@ -216,9 +206,9 @@ yes
                         </template>
                         <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
-                                   value="{{propValue.value}}"
-                                   pattern="[0-9]*"
-                                   prevent-invalid-input></vaadin-text-field>
+                                               value="{{propValue.value}}"
+                                               pattern="[0-9]*"
+                                               prevent-invalid-input></vaadin-text-field>
                         </template>
                     </vaadin-form-item>
                 </template>
@@ -231,7 +221,7 @@ yes
                             <div>{{computeBoolString(propValue.value)}}</div>
                         </template>
                         <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
-                            <vaadin-checkbox value="{{propValue.value}}"></vaadin-checkbox>
+                            <vaadin-checkbox checked="{{propValue.value}}"></vaadin-checkbox>
                         </template>
                     </vaadin-form-item>
                 </template>
@@ -271,26 +261,21 @@ yes
 
             static get properties() {
                 return {
-
                     editMode:{
                         type: Boolean,
                         value: false,
                         //observer: 'dataChanged'
                     },
-                    options:{
-                        type:Array,
-                        value() { return []; },
-                        observer: 'dataChanged'
-                    },
+
                     propValueArr:{
                         type: Array,
                         value() { return []; }
                     },
-                    document:{
-                        type:Object,
-                        value() { return {}; },
-                        notify: true
-                    }
+                    docId:{
+                        type: String,
+                        observer: 'dataChanged'
+                    },
+
                 };
             }
 
@@ -300,23 +285,24 @@ yes
                 ];
             }
             propValueArrChanged(changeRecord){
-                //console.log('path: ' + changeRecord.path);
-                //console.log('value: ' + changeRecord.value);
-                //console.dir(changeRecord.base);
                 var idxArr = changeRecord.path.split('.');
                 if(idxArr.length>1) {
                     var idx = idxArr[1];
                     var propValue = changeRecord.base[idx];
 
+                    console.log('propValue', propValue);
+
                     if(propValue.path === 'document.title') {
-                        console.log('path', propValue.path);
-                        console.log('value', propValue.value);
+                        //console.log('path', propValue.path);
+                        //console.log('value', propValue.value);
                         //this.set(propValue.path, propValue.value);
                         //this.notifyPath('document');
                         this.dispatchEvent(new CustomEvent('docchanged', {bubbles: true, composed: true, detail: propValue}));
                     }
                 }
             }
+
+
             computeReadOnly(readOnly, editMode){
                 return !editMode; //HACK
                 if(readOnly) return true;
@@ -356,38 +342,6 @@ yes
             }
             computeLengthLessThan(arr, length){
                 return arr.length<length;
-            }/*
-            computeLabelValueArr(optionsSplices, query) {
-                if(!optionsSplices) return [];
-                var options = optionsSplices.indexSplices[0].object;
-                var arr =  Object.keys(options).map(function(key) {
-                    return {
-                        label: options[key].name,
-                        value: options[key].$key
-                    };
-                });
-                return arr;
-            }
-
-            computeOrderByChild(query) {
-                if(query.from) return 'classId';
-                if(!query || !query.where || !query.where.docProp) return null;
-                var value = query.where.docProp;
-                //console.log('computeOrderByChild: ',value);
-                return value;
-            }
-
-            computeEqualTo(query) {
-                if(query.from) return query.from;
-                if(!query || !query.where || !query.where.value) return null;
-                var value = query.where.value;
-                if(value == '$parent._id') value = this.docId;
-                //console.log('computeEqualTo: ',value);
-                return value;
-            }*/
-            onValueChanged(event){
-                //var target = event.detail;
-                //this.set()
             }
 
 
@@ -455,7 +409,7 @@ yes
             }
 
             dataChanged(newValue) {
-                console.log('options:', newValue );
+                console.log('Form docId:', newValue );
             }
         }
         window.customElements.define(NqFormDigit.is, NqFormDigit);

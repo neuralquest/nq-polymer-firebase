@@ -36,30 +36,42 @@ yes
             }
         </style>
 
-        <app-location route="{{route}}" use-hash-as-path></app-location>
+
         <div class="layout vertical fit overflow-y">
             <template is="dom-repeat" items="[[widgets]]" as="widget">
 
-                <!-- Draw widget-->
+                <!-- Document-->
                 <template is="dom-if" if="[[_typeDocument(widget.displayType)]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
+
+                <!-- Tree-->
                 <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
                     <nq-tree class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-tree>
                     <!-- <nq-tree2 class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-tree2>-->
                 </template>
+
+                <!-- Tabl-->
                 <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
+
+                <!-- 3dClassModel-->
                 <template is="dom-if" if="[[_type3dClassModel(widget.displayType)]]">
                     <nq-3d-class-model class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-3d-class-model>
                 </template>
+
+                <!-- ProcessModel-->
                 <template is="dom-if" if="[[_typeProcessModel(widget.displayType)]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
+
+                <!-- Form-->
                 <template is="dom-if" if="[[_typeForm(widget.displayType)]]">
                     <nq-form class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-form>
                 </template>
+
+                <!-- HomePage-->
                 <template is="dom-if" if="[[_typeHomePage(widget.displayType)]]">
                     <nq-home class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-home>
                 </template>

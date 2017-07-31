@@ -99,20 +99,14 @@ yes
                     },
                     tabs: {
                         type: Array,
-                        value () {
-                            return [];
-                        },
-                        observer: 'dataChanged'
+                        value () {return [];}
                     },
                     selected: {
                         type: Number,
                         value: 0,
                         //observer: '_updateRoute',
                         computed: 'routePathChanged(route.path)'
-                    },
-                    selectedTabNum: {
-                        type: Number,
-                    },
+                    }
                 };
             }
 
@@ -148,7 +142,7 @@ yes
             }
 
             dataChanged(newValue, oldValue) {
-                console.log('TABS level', this.level, 'to:', newValue);
+                //console.log('TABS level', this.level, 'to:', newValue);
             }
         }
         window.customElements.define(NqTabs.is, NqTabs);

@@ -10,23 +10,32 @@
             :host {
                 display: block;
             }
+            vaadin-combo-box {
+                max-width: 300px;
+            }
+            .floated-label-placeholder{
+                display: none;
+            }
         </style>
 
-        <template is="dom-if" if="[[editMode]]">
+        <template is="dom-if" if="[[readOnly]]">
             <firebase-document
-                    path="/documents/[[docId]]"
+                    path="/documents/[[value]]"
                     data="{{document}}">
             </firebase-document>
             <div>{{document.name}}</div>
         </template>
-        <template is="dom-if" if="[[!editMode]]">
+        <template is="dom-if" if="[[!readOnly]]">
             <firebase-query
                     path="/documents"
                     order-by-child="[[computeOrderByChild(query)]]"
                     equal-to="[[computeEqualTo(query)]]"
                     data="{{options}}">
             </firebase-query>
-            <vaadin-combo-box items="[[computeLabelValueArr(options.splices, query)]]"
+
+            <vaadin-combo-box items="[[options]]"
+                              item-value-path="$key"
+                              item-label-path="name"
                               value="{{value}}">
             </vaadin-combo-box>
         </template>
@@ -39,19 +48,20 @@
             static get properties() {
                 return {
                     docId:{
-                        type: String
+                        type: String,
                     },
                     query:{
                         type:Object,
                         value() { return {}; },
                     },
-                    editMode:{
+                    readOnly:{
                         type: Boolean,
                         value: false,
                     },
                     value:{
                         type: String,
-                        notify: true
+                        notify: true,
+                        observer: 'dataChanged'
                     },
                     document:{
                         type:Object,
@@ -63,6 +73,7 @@
                     },
                 };
             }
+
             computeOrderByChild(query) {
                 if(query.from) return 'classId';
                 if(!query || !query.where || !query.where.docProp) return null;
@@ -90,6 +101,10 @@
                     };
                 });
                 return arr;
+            }
+
+            dataChanged(newVal){
+                console.log('newVal', newVal);
             }
         }
 
