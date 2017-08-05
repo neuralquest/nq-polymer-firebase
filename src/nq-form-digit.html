@@ -60,24 +60,30 @@ yes
             <template is="dom-repeat" items="{{propValueArr}}" as="propValue">
 
                 <!-- Richtext -->
-                <template is="dom-if" if="[[_typeStringHtml(propValue.attrProps)]]">
-                      <vaadin-form-item>
-                          <label slot="label">[[propValue.attrProps.title]]</label>
-                          <template is="dom-if" if="[[(propValue.attrProps.readOnly,editMode)]]">
-                              <div inner-h-t-m-l="{{propValue.value}}"></div>
-                          </template>
-                          <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
-                              <vaadin-text-field class="full-width"
-                                                 value="{{propValue.value}}"
-                                                 minlength="[[propValue.minLength]]"
-                                                 maxlength="[[propValue.maxLength]]"
-                                                 prevent-invalid-input></vaadin-text-field>
-                          </template>
-                      </vaadin-form-item>
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'html')]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[propValue.attrProps.title]]</label>
+                        <template is="dom-if" if="[[(propValue.attrProps.readOnly,editMode)]]">
+                            <div inner-h-t-m-l="{{propValue.value}}"></div>
+                        </template>
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </template>
+                    </vaadin-form-item>
                 </template>
 
+
+                <!-- Richtext
+                <template is="dom-if" if="[[_typeStringHtml(propValue.attrProps)]]">
+
+                </template>
+-->
                 <!-- Base64 -->
-                <template is="dom-if" if="[[_typeStringBase64(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'img')]]">
                       <vaadin-form-item>
                           <label slot="label">[[propValue.attrProps.title]]</label>
                           <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -99,7 +105,7 @@ yes
                 </template>
 
                 <!-- WbbGl -->
-                <template is="dom-if" if="[[_typeStringWebGL(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'webGL')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -113,7 +119,7 @@ yes
                 </template>
 
                 <!-- Date -->
-                <template is="dom-if" if="[[_typeStringDate(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'date')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -126,7 +132,7 @@ yes
                 </template>
 
                 <!-- Uri -->
-                <template is="dom-if" if="[[_typeStringUri(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'uri')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -143,7 +149,7 @@ yes
                 </template>
 
                 <!-- Enum -->
-                <template is="dom-if" if="[[_typeStringEnum(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'enum')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -167,7 +173,7 @@ yes
                 </template>
 
                 <!-- Query -->
-                <template is="dom-if" if="[[_typeStringQuery(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'query')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <nq-combobox
@@ -181,7 +187,7 @@ yes
                 </template>
 
                 <!--String-->
-                <template is="dom-if" if="[[_typeString(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'string')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -198,7 +204,7 @@ yes
                 </template>
 
                 <!--Number-->
-                <template is="dom-if" if="[[_typeNumber(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'number')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -214,7 +220,7 @@ yes
                 </template>
 
                 <!-- Boolean -->
-                <template is="dom-if" if="[[_typeBoolean(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'boolean')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -227,7 +233,7 @@ yes
                 </template>
 
                 <!-- Array -->
-                <template is="dom-if" if="[[_typeArray(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'array')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-repeat" items="{{propValue.value}}">
@@ -239,12 +245,29 @@ yes
                 </template>
 
                 <!-- Object -->
-                <template is="dom-if" if="[[_typeObject(propValue.attrProps)]]">
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'object')]]">
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <nq-form-digit class="nest"
                                        prop-value-arr="[[computePropValueArr(propValue.attrProps, propValue.value)]]"
                                        edit-mode="[[editMode]]"></nq-form-digit>
+                    </vaadin-form-item>
+                </template>
+
+                <!--Json-->
+                <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'json')]]">
+                    <vaadin-form-item>
+                        <label slot="label">[[propValue.attrProps.title]]</label>
+                        <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                            <div>{{propValue.value}}</div>
+                        </template>
+                        <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </template>
                     </vaadin-form-item>
                 </template>
 
@@ -344,68 +367,23 @@ yes
                 return arr.length<length;
             }
 
-
-
-            _typeStringHtml(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.media &&
-                attrProps.media.mediaType === 'text/html');
-            }
-            _typeStringBase64(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.media &&
-                attrProps.media.binaryEncoding === 'base64' &&
-                attrProps.media.type === 'image/png');
-            }
-            _typeStringWebGL(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.media &&
-                attrProps.media.type === 'image/webgl');
-            }
-            _typeStringDate(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.format &&
-                attrProps.format === 'date-time');
-            }
-            _typeStringUri(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.format &&
-                attrProps.format === 'uri');
-            }
-            _typeStringEnum(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.enum);
-            }
-            _typeStringQuery(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                attrProps.query);
-            }
-            _typeString(attrProps) {
-                return (
-                attrProps.type === 'string' &&
-                !attrProps.media &&
-                !attrProps.format &&
-                !attrProps.enum &&
-                !attrProps.query );
-            }
-            _typeNumber(attrProps) {
-                return attrProps.type === 'number';
-            }
-            _typeBoolean(attrProps) {
-                return attrProps.type === 'boolean';
-            }
-            _typeArray(attrProps) {
-                return attrProps.type === 'array';
-            }
-            _typeObject(attrProps) {
-                return attrProps.type === 'object';
+            computeDidgitType(attrProps, type){
+                console.log('tpye', type, attrProps  );
+                if(attrProps.type === 'string'){
+                    if(attrProps.media){
+                        if(attrProps.media.mediaType === 'text/html') return type === 'html';
+                        if(attrProps.media.mediaType === 'image/png') return type === 'img';
+                        if(attrProps.media.mediaType === 'image/webgl') return type === 'webGl';
+                    }
+                    if(attrProps.format){
+                        if(attrProps.media.format === 'date-time') return type === 'date';
+                        if(attrProps.media.format === 'uri') return type === 'a';
+                    }
+                    if(attrProps.enum) return type === 'enum';
+                    if(attrProps.query) return type === 'query';
+                    return type === 'string';
+                }
+                else return attrProps.type === type;
             }
 
             dataChanged(newValue) {
