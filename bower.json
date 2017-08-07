@@ -30,7 +30,8 @@
     "vaadin-combo-box": "vaadin/vaadin-combo-box#2.0.0-alpha3",
     "vaadin-checkbox": "vaadin/vaadin-checkbox#^1.0.0-alpha1",
     "vaadin-date-picker": "vaadin/vaadin-date-picker#^1.2.3",
-    "vaadin-radio-button": "vaadin/vaadin-radio-button#^1.0.0-alpha1"
+    "vaadin-radio-button": "vaadin/vaadin-radio-button#^1.0.0-alpha1",
+    "three.js": "mrdoob/three.js#r86"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0-prerelease.7"

@@ -1,0 +1,335 @@
+<script>
+    const NqThreejsMixin = superclass => class extends superclass {
+
+
+        static get properties() {
+            return {
+                selectedId: String,
+                skyboxArray: {
+                    type: Array,
+                    value: function(){return [];}
+                },
+                selectableObjects: {
+                    type: Array,
+                    value: function(){return [];}
+                },
+                displayFPS: {
+                    type: Boolean,
+                    value: false
+                },
+                scene: {
+                    type: Object,
+                    //observer: 'renderJob'
+                },
+                camera: {
+                    type: Object
+                },
+                controls: {
+                    type: Object
+                },
+                projector: {
+                    type: Object
+                },
+
+                renderer: {
+                    type: Object
+                },
+            };
+        }
+
+        init(){
+            var sceneObject3D = new THREE.Object3D();
+
+            //camera
+            this.camera = new THREE.PerspectiveCamera( 60, 3 / 2, 1, 100000 );
+            this.camera.position.z = 2000;
+            //by changing the eulerOrder we can force the camera to keep its head level
+            //see: http://stackoverflow.com/questions/17517937/three-js-camera-tilt-up-or-down-and-keep-horizon-level
+            this.camera.rotation.order = "YXZ";
+
+            // renderer
+            //this.renderer = new THREE.WebGLRenderer( {antialias: true} );
+            if ( Detector.webgl ) this.renderer = new THREE.WebGLRenderer( {antialias: true} );
+            else if(Detector.canvas) this.renderer = new THREE.CanvasRenderer();
+            //else;
+            //this.renderer.setSize( window.innerWidth, window.innerHeight );
+            //this.domNode.appendChild( this.renderer.domElement );
+
+            Polymer.dom( this.$.threejsNode ).appendChild(this.renderer.domElement);
+
+
+            //controls
+            this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
+            this.controls.rotateSpeed = 1.0;
+            this.controls.zoomSpeed = 1.2;
+            this.controls.panSpeed = 0.8;
+            this.controls.noRotate = false;
+            this.controls.noZoom = false;
+            this.controls.noPan = false;
+            this.controls.staticMoving = true;
+            this.controls.dynamicDampingFactor = 0.3;
+            this.controls.keys = [ 65, 83, 68 ];
+            this.controls.addEventListener( 'change', this.render );
+            //this.controls.addEventListener('change', e => this.render(e));
+
+
+            // world
+            this.scene = new THREE.Scene();
+
+            // lights
+            var light1 = new THREE.DirectionalLight( 0xffffff );
+            light1.position.set( 1, 1, 1 ).normalize();
+            sceneObject3D.add( light1 );
+            var light2 = new THREE.AmbientLight( 0x404040 );
+            sceneObject3D.add( light2 );
+
+            // axes
+            sceneObject3D.add( new THREE.AxisHelper(100) );
+
+            // projector
+            this.projector = new THREE.Projector();
+
+
+
+            // skybox
+            if(this.skyboxArray.length == 6){
+                var geometry = new THREE.BoxGeometry( 100000, 100000, 100000 );
+                var loader = new THREE.CubeTextureLoader();
+                // See https://cloud.google.com/storage/docs/cross-origin
+                loader.setCrossOrigin('anonymous');
+                var textureCube = loader.load( this.skyboxArray );
+                var material = new THREE.MeshBasicMaterial( {
+                    color: 0xffffff,
+                    envMap: textureCube,
+                    side: THREE.BackSide
+                } );
+                var cube = new THREE.Mesh( geometry, material );
+                sceneObject3D.add( cube );
+            }
+
+            //else see http://threejs.org/examples/webgl_multiple_views.html
+            // for canvas gradient
+            if(this.displayFPS){
+                stats = new Stats();
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.top = '0px';
+                this.domNode.appendChild( stats.domElement );
+            }
+
+            //this.connect(this.domNode, "onclick", "gotoObject");
+            sceneObject3D.name = 'Boilerplate';
+            this.scene.add(sceneObject3D);
+
+            var geometry = new THREE.BoxGeometry(200, 200, 200);
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xff0000,
+                wireframe: true
+            });
+            this.mesh = new THREE.Mesh(geometry, material);
+            this.scene.add(this.mesh);
+
+
+            this.addEventListener('iron-resize', e => this.resize(e));
+
+
+			this.animate();
+        }
+        render(){
+            //console.log(camera.position.x);
+            this.camera.rotation.z = 0;// this is used to keep the camera level
+            this.renderer.render( this.scene, this.camera );
+        }
+        startup(){
+            //this.resize();
+            //var pane = registry.byId('tab'+this.tabId);
+            this.resize();
+            this.loadingMessage();
+            animate();
+        }
+        animate(){
+
+            requestAnimationFrame(this.animate.bind(this));
+            //cube.position.copy(camera.position); //keep skybox centred around the camera
+            this.mesh.rotation.x += 0.01;
+            this.mesh.rotation.y += 0.02;
+            this.renderer.render(this.scene, this.camera);
+            /*
+            var requestId = requestAnimationFrame( this.animate.bind(this) );
+            TWEEN.update();
+            this.controls.update();
+            if(this.displayFPS) stats.update();
+            */
+        }
+        resize(event){
+            var clientWidth = event.currentTarget.clientWidth;
+            var clientHeight = event.currentTarget.clientHeight;
+            this.camera.aspect = clientWidth / clientHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize( clientWidth, clientHeight );
+            this.controls.handleResize();
+            this.render();
+        }
+        /*
+        gotoObject(event){
+            //see http://stackoverflow.com/questions/11161674/dragging-and-clicking-objects-with-controls
+            event.preventDefault();
+            domGeom.normalizeEvent(event);
+            var positionInfo = dojo.position(this.domNode.parentNode, true);
+            var clientWidth = positionInfo.w;
+            var clientHeight = positionInfo.h;
+            var x = ( event.offsetX / clientWidth ) * 2 - 1;
+            var y = - ( event.offsetY / clientHeight ) * 2 + 1;
+            var vector = new THREE.Vector3( x, y, 0.5 );
+            projector.unprojectVector( vector, camera );
+            var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
+            var intersects = raycaster.intersectObjects( this.selectableObjects );
+            if ( intersects.length > 0 ) {
+                console.log(intersects);
+                var selectedMesh = intersects[0].object;
+                this.moveCameraToMesh(selectedMesh);
+            }
+        }
+        moveCameraToMesh(selectedMesh){
+            this.swapSelectedItemMaterial(selectedMesh);
+
+            var newTargetPos = new THREE.Vector3();
+            newTargetPos.getPositionFromMatrix(selectedMesh.matrixWorld);
+            var newCameraPos = newTargetPos.clone();
+            newCameraPos.z = 2000;
+
+            var cameraPos = camera.position;
+            var target = controls.target;
+            var fromPos = {tx: target.x, ty: target.y, tz: target.z, cx: cameraPos.x, cy: cameraPos.y, cz: cameraPos.z};
+            var toPos = {tx: newTargetPos.x, ty: newTargetPos.y, tz: newTargetPos.z, cx: newCameraPos.x, cy: newCameraPos.y, cz: newCameraPos.z};
+            var tween = new TWEEN.Tween(fromPos).to(toPos, 1500);
+            tween.easing(TWEEN.Easing.Quadratic.Out);
+            tween.onUpdate(function(){
+                var tweenTargetPos = new THREE.Vector3(this.tx, this.ty, this.tz);
+                var tweenCameraPos = new THREE.Vector3(this.cx, this.cy, this.cz);
+                controls.object.position = tweenCameraPos;
+                controls.target = tweenTargetPos;
+            });
+            tween.start();
+        }
+        swapSelectedItemMaterial(mesh){
+            var currentMaterial = mesh.material;
+            if(this.selectedMeshMaterialBeforeSelection) {
+                //set the material of the current selected mesh to what it was
+                this.selectedMesh.material = this.selectedMeshMaterialBeforeSelection;
+            }
+            this.selectedItemId = mesh.name;
+            this.selectedMesh = mesh;
+            this.selectedMeshMaterialBeforeSelection = currentMaterial;
+            var highlightMaterial = new THREE.MeshLambertMaterial({color: 0xFFFF33});
+            mesh.material = highlightMaterial;
+            //===============================
+            //var materials = [
+            //	new THREE.MeshLambertMaterial( { color: 0x0000ff, shading: THREE.FlatShading, vertexColors: THREE.VertexColors } ),
+            //	new THREE.MeshBasicMaterial( { color: 0x000000, shading: THREE.FlatShading, wireframe: true, transparent: true } )
+            //];
+            //var cube = THREE.SceneUtils.createMultiMaterialObject( cubeGeometry, materials );
+            //===============================
+
+        }
+        startup(){
+            //this.resize();
+            //var pane = registry.byId('tab'+this.tabId);
+            this.resize();
+            this.loadingMessage();
+            animate();
+        }
+        resize(changeSize){
+            var positionInfo = dojo.position(this.domNode.parentNode, true);
+            var clientWidth = positionInfo.w;
+            var clientHeight = positionInfo.h;
+            camera.aspect = clientWidth / clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( clientWidth, clientHeight );
+            controls.handleResize();
+            render();
+            this.inherited(arguments);
+        }
+        /*
+         onShow(){
+         animate();
+         this.inherited(arguments);
+         }
+         onHide(){
+         cancelAnimation();
+         this.inherited(arguments);
+         }
+         * /
+        destroy(){
+            cancelAnimation();
+            for ( var i = scene.children.length - 1; i >= 0 ; i -- ) {
+                var obj = scene.children[ i ];
+                scene.remove(obj);
+            }
+            this.inherited(arguments);
+        }
+        clearScene(){
+            // clear the scene
+            this.selectableObjects = [];
+            // the first object contains the boilerplate, so leave it.
+            for ( var i = scene.children.length - 1; i >= 1 ; i -- ) {
+                var obj = scene.children[ i ];
+                scene.remove(obj);
+            }
+            render();
+        }
+        addToScene(object3D, headerOrBody){
+            switch(headerOrBody){
+                case 'rowHeader':
+                    this.rowHeaderObject = object3D;
+                    scene.add(object3D);
+                    break;
+                case 'columnHeader':
+                    this.columnHeaderObject = object3D;
+                    scene.add(object3D);
+                    break;
+                default:
+                    this.bodyObject = object3D;
+                    scene.add(object3D);
+                    break;
+            }
+            render();
+        }
+        loadingMessage(){
+            var textMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
+            //'Loading...'
+            var text3d = new THREE.TextGeometry('Loading...', {size: 50, font: 'helvetiker'});
+            text3d.computeBoundingBox();
+            var xOffset = -0.5 * ( text3d.boundingBox.max.x - text3d.boundingBox.min.x );
+            var yOffset = -0.5 * ( text3d.boundingBox.max.y - text3d.boundingBox.min.y );
+            var textMesh = new THREE.Mesh(text3d, textMaterial);
+            textMesh.position.x = xOffset;
+            textMesh.position.y = 400;
+            textMesh.position.z = 0;
+            textMesh.rotation.x = 0;
+            textMesh.rotation.y = Math.PI * 2;
+            textMesh.name = 'Loading Message';
+            scene.add(textMesh);
+            render();
+        }
+        getMeshByName(name){
+            for(var i=0;i<this.selectableObjects.length;i++){
+                var selectableObject = this.selectableObjects[i];
+                if(selectableObject.name == name){
+                    return selectableObject;
+                }
+            }
+        }
+
+        animate(){
+            requestId = requestAnimationFrame( animate.bind(this) );
+            TWEEN.update();
+            controls.update();
+            if(this.displayFPS) stats.update();
+        }
+        cancelAnimation(){
+            if(requestId) cancelAnimationFrame(requestId);
+            requestId = undefined;
+        }
+*/
+    };
+</script>

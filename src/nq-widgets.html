@@ -4,7 +4,7 @@
 <link rel="import" href="nq-tree.html">
 <link rel="import" href="nq-home.html">
 <link rel="import" href="nq-form.html">
-<link rel="import" href="nq-3d-class-model.html">
+<link rel="import" href="nq-threejs-viewport.html">
 
 <!--
 `my-blank-element`
@@ -41,38 +41,38 @@ yes
             <template is="dom-repeat" items="[[widgets]]" as="widget">
 
                 <!-- Document-->
-                <template is="dom-if" if="[[_typeDocument(widget.displayType)]]">
+                <template is="dom-if" if="[[compareStrings(widget.displayType,'Document')]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
 
                 <!-- Tree-->
-                <template is="dom-if" if="[[_typeTree(widget.displayType)]]">
+                <template is="dom-if" if="[[compareStrings(widget.displayType,'Tree')]]">
                     <nq-tree class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-tree>
                     <!-- <nq-tree2 class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-tree2>-->
                 </template>
 
                 <!-- Tabl-->
-                <template is="dom-if" if="[[_typeTable(widget.displayType)]]">
+                <template is="dom-if" if="[[compareStrings(widget.displayType,'Table')]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
 
                 <!-- 3dClassModel-->
-                <template is="dom-if" if="[[_type3dClassModel(widget.displayType)]]">
-                    <nq-3d-class-model class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-3d-class-model>
+                <template is="dom-if" if="[[compareStrings(widget.displayType,'3D Class Model')]]">
+                    <nq-threejs-viewport class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-threejs-viewport>
                 </template>
 
                 <!-- ProcessModel-->
-                <template is="dom-if" if="[[_typeProcessModel(widget.displayType)]]">
+                <template is="dom-if" if="[[compareStrings(widget.displayType,'Process Model')]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
 
                 <!-- Form-->
-                <template is="dom-if" if="[[_typeForm(widget.displayType)]]">
+                <template is="dom-if" if="[[compareStrings(widget.displayType,'Form')]]">
                     <nq-form class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-form>
                 </template>
 
                 <!-- HomePage-->
-                <template is="dom-if" if="[[_typeHomePage(widget.displayType)]]">
+                <template is="dom-if" if="[[compareStrings(widget.displayType,'Home Page')]]">
                     <nq-home class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-home>
                 </template>
 
@@ -99,26 +99,8 @@ yes
                 };
             }
 
-            _typeDocument(displayType) {
-                return displayType==='Document';
-            }
-            _typeTree(displayType) {
-                return displayType==='Tree';
-            }
-            _typeTable(displayType) {
-                return displayType==='Table';
-            }
-            _type3dClassModel(displayType) {
-                return displayType==='3D Class Model';
-            }
-            _typeProcessModel(displayType) {
-                return displayType==='Process Model';
-            }
-            _typeForm(displayType) {
-                return displayType==='Form';
-            }
-            _typeHomePage(displayType) {
-                return displayType==='HomePage';
+            compareStrings(s1, s2){
+                return s1 === s2;
             }
 
             computeDocId(level, route){

@@ -1,0 +1,137 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="nq-threejs.html">
+<link rel="import" href="nq-threejs-mixin.html">
+
+<dom-module id="nq-threejs-viewport">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+
+        <div id="threejsNode"></div>
+
+    </template>
+
+    <script>
+
+        class NqThreejsViewPort extends
+                Polymer.mixinBehaviors([Polymer.IronResizableBehavior], NqThreejsMixin(Polymer.Element)) {
+        //class NqThreejsViewPort extends NqThreejsMixin(Polymer.Element) {
+
+            static get is() { return 'nq-threejs-viewport'; }
+
+
+            static get properties() {
+                return {
+                    width: {
+                        type: Number,
+                        value: 600,
+                        //observer: '_resizeJob'
+                    },
+                    height: {
+                        type: Number,
+                        value: 600,
+                        //observer: '_resizeJob'
+                    },
+                    skyboxArray: {
+                        type: Array,
+                        value: function () {
+                            return [
+                                '../images/space_3_right.jpg',
+                                '../images/space_3_left.jpg',
+                                '../images/space_3_top.jpg?',
+                                '../images/space_3_bottom.jpg',
+                                '../images/space_3_front.jpg',
+                                '../images/space_3_back.jpg'
+                            ]
+                        }
+                    },
+                    clearColor: {
+                        value: '#222222'
+                    },
+                    showHelpers: {
+                        type: Boolean,
+                        value: false
+                    },
+                    // showCompass: {
+                    //   type: Boolean,
+                    //   value: false,
+                    // },
+                    // compassSize: {
+                    //   type: Number,
+                    //   value: 30
+                    // }
+                }
+            }
+            ready() {
+                super.ready();
+                this.init();
+            }
+
+            /*hostAttributes: {
+                    tabindex: 0,
+                    oncontextmenu: "return false;"
+                    }
+            listeners: {
+                    'focus': 'render',
+                    'touchmove': '_preventDefaultAction',
+                    'mousemove': '_preventDefaultAction'
+                    }
+            created () {
+                this._render = this.render.bind(this);
+            }
+            ready() {
+              //this.init();
+            }
+
+            postRender() {
+                if (this.showHelpers) {
+                    if (this.scene._helpers) {
+                        this.scene._helpers.traverse(function (child) {
+                            if (child.update) {
+                                child.update(this.camera);
+                            }
+                        }.bind(this));
+                        this.$.renderer.renderer.render(this.scene._helpers, this.camera);
+                    }
+                    // if (this.showCompass) {
+                    //   this.$.renderer.renderer.setViewport(
+                    //     this._width - this.compassSize,
+                    //     this._height - this.compassSize,
+                    //     this.compassSize, this.compassSize);
+                    //   this._compass.update(this.camera);
+                    //   this.$.renderer.renderer.render(this._compass, this._compass.camera);
+                    //   this.$.renderer.renderer.setViewport(0, 0, this._width, this._height);
+                    // }
+                }
+            }
+            render() {
+                this.$.renderer.renderJob();
+            }
+            renderJob() {
+                this.debounce('three-viewport-render-job', function() {
+                    requestAnimationFrame(this._render);
+                }.bind(this));
+            }
+            _resizeJob () {
+                this.debounce('three-viewport-resize', this._resize);
+            }
+            _resize() {
+                this._width = Math.ceil(this.width);
+                this._height = Math.ceil(this.height);
+                this.style.width = this.width + 'px';
+                this.style.height = this.height + 'px';
+                this.renderJob();
+            }
+            _preventDefaultAction (event) {
+                event.preventDefault();
+            }
+*/
+        }
+
+        window.customElements.define(NqThreejsViewPort.is, NqThreejsViewPort);
+    </script>
+</dom-module>

@@ -368,7 +368,7 @@ yes
             }
 
             computeDidgitType(attrProps, type){
-                console.log('tpye', type, attrProps  );
+                //console.log('tpye', type, attrProps  );
                 if(attrProps.type === 'string'){
                     if(attrProps.media){
                         if(attrProps.media.mediaType === 'text/html') return type === 'html';
@@ -387,7 +387,7 @@ yes
             }
 
             dataChanged(newValue) {
-                console.log('Form docId:', newValue );
+                //console.log('Form docId:', newValue );
             }
         }
         window.customElements.define(NqFormDigit.is, NqFormDigit);
