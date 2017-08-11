@@ -51,14 +51,14 @@ yes
                     <!-- <nq-tree2 class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-tree2>-->
                 </template>
 
-                <!-- Tabl-->
+                <!-- Table -->
                 <template is="dom-if" if="[[compareStrings(widget.displayType,'Table')]]">
                     <div>Widget [[widget.displayType]]</div>
                 </template>
 
                 <!-- 3dClassModel-->
                 <template is="dom-if" if="[[compareStrings(widget.displayType,'3D Class Model')]]">
-                    <nq-threejs-viewport class="flex" level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-threejs-viewport>
+                    <nq-threejs-viewport level="[[level]]" view-id="[[widget.viewId]]" doc-id="[[computeDocId(level, route)]]"></nq-threejs-viewport>
                 </template>
 
                 <!-- ProcessModel-->

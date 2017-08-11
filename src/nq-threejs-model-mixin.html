@@ -1,0 +1,27 @@
+<script>
+    const NqThreejsModelMixin = superclass => class extends superclass {
+
+
+        static get properties() {
+            return {
+                selectedId: String,
+
+            };
+        }
+
+        constructor(height, width) {
+            this.height = height;
+            this.width = width;
+        }
+
+        get area() {
+            return this.calcArea();
+        }
+
+        calcArea() {
+            return this.height * this.width;
+        }
+
+
+    };
+</script>

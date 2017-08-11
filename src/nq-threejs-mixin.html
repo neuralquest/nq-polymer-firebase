@@ -69,8 +69,8 @@
             this.controls.staticMoving = true;
             this.controls.dynamicDampingFactor = 0.3;
             this.controls.keys = [ 65, 83, 68 ];
-            this.controls.addEventListener( 'change', this.render );
-            //this.controls.addEventListener('change', e => this.render(e));
+            //this.controls.addEventListener( 'change', this.render );
+            this.controls.addEventListener('change', e => this.render(e));
 
 
             // world
@@ -92,7 +92,7 @@
 
 
             // skybox
-            if(this.skyboxArray.length == 6){
+            /*if(this.skyboxArray.length == 9){
                 var geometry = new THREE.BoxGeometry( 100000, 100000, 100000 );
                 var loader = new THREE.CubeTextureLoader();
                 // See https://cloud.google.com/storage/docs/cross-origin
@@ -101,10 +101,25 @@
                 var material = new THREE.MeshBasicMaterial( {
                     color: 0xffffff,
                     envMap: textureCube,
-                    side: THREE.BackSide
+                    side: THREE.BackSide,
                 } );
                 var cube = new THREE.Mesh( geometry, material );
                 sceneObject3D.add( cube );
+            }*/
+
+
+            // See https://stemkoski.github.io/Three.js/Skybox.html
+            if(this.skyboxArray.length == 6) {
+                var skyGeometry = new THREE.CubeGeometry(5000, 5000, 5000);
+                var materialArray = [];
+                for (var i = 0; i < 6; i++)
+                    materialArray.push( new THREE.MeshBasicMaterial({
+                        map: THREE.ImageUtils.loadTexture( this.skyboxArray[i] ),
+                        side: THREE.BackSide
+                    }));
+                var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
+                var skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
+                sceneObject3D.add( skyBox );
             }
 
             //else see http://threejs.org/examples/webgl_multiple_views.html
@@ -152,6 +167,8 @@
             //cube.position.copy(camera.position); //keep skybox centred around the camera
             this.mesh.rotation.x += 0.01;
             this.mesh.rotation.y += 0.02;
+
+            this.controls.update();
             this.renderer.render(this.scene, this.camera);
             /*
             var requestId = requestAnimationFrame( this.animate.bind(this) );
@@ -161,8 +178,8 @@
             */
         }
         resize(event){
-            var clientWidth = event.currentTarget.clientWidth;
-            var clientHeight = event.currentTarget.clientHeight;
+            var clientWidth = this.clientWidth;
+            var clientHeight = this.clientHeight-3;
             this.camera.aspect = clientWidth / clientHeight;
             this.camera.updateProjectionMatrix();
             this.renderer.setSize( clientWidth, clientHeight );
