@@ -36,8 +36,9 @@
                 },
             };
         }
+        ready() {
+            super.ready();
 
-        init(){
             var sceneObject3D = new THREE.Object3D();
 
             //camera
@@ -90,27 +91,9 @@
             this.projector = new THREE.Projector();
 
 
-
-            // skybox
-            /*if(this.skyboxArray.length == 9){
-                var geometry = new THREE.BoxGeometry( 100000, 100000, 100000 );
-                var loader = new THREE.CubeTextureLoader();
-                // See https://cloud.google.com/storage/docs/cross-origin
-                loader.setCrossOrigin('anonymous');
-                var textureCube = loader.load( this.skyboxArray );
-                var material = new THREE.MeshBasicMaterial( {
-                    color: 0xffffff,
-                    envMap: textureCube,
-                    side: THREE.BackSide,
-                } );
-                var cube = new THREE.Mesh( geometry, material );
-                sceneObject3D.add( cube );
-            }*/
-
-
             // See https://stemkoski.github.io/Three.js/Skybox.html
             if(this.skyboxArray.length == 6) {
-                var skyGeometry = new THREE.CubeGeometry(5000, 5000, 5000);
+                var skyGeometry = new THREE.CubeGeometry(50000, 50000, 50000);
                 var materialArray = [];
                 for (var i = 0; i < 6; i++)
                     materialArray.push( new THREE.MeshBasicMaterial({
@@ -135,13 +118,7 @@
             sceneObject3D.name = 'Boilerplate';
             this.scene.add(sceneObject3D);
 
-            var geometry = new THREE.BoxGeometry(200, 200, 200);
-            var material = new THREE.MeshBasicMaterial({
-                color: 0xff0000,
-                wireframe: true
-            });
-            this.mesh = new THREE.Mesh(geometry, material);
-            this.scene.add(this.mesh);
+
 
 
             this.addEventListener('iron-resize', e => this.resize(e));
@@ -151,22 +128,16 @@
         }
         render(){
             //console.log(camera.position.x);
-            this.camera.rotation.z = 0;// this is used to keep the camera level
+            //this.camera.rotation.z = 0;// this is used to keep the camera level
             this.renderer.render( this.scene, this.camera );
         }
-        startup(){
-            //this.resize();
-            //var pane = registry.byId('tab'+this.tabId);
-            this.resize();
-            this.loadingMessage();
-            animate();
-        }
+
         animate(){
 
             requestAnimationFrame(this.animate.bind(this));
             //cube.position.copy(camera.position); //keep skybox centred around the camera
-            this.mesh.rotation.x += 0.01;
-            this.mesh.rotation.y += 0.02;
+            //this.mesh.rotation.x += 0.01;
+            //this.mesh.rotation.y += 0.02;
 
             this.controls.update();
             this.renderer.render(this.scene, this.camera);

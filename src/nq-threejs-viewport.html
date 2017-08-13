@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="nq-threejs.html">
 <link rel="import" href="nq-threejs-mixin.html">
@@ -9,14 +10,104 @@
             :host {
                 display: block;
                 overflow: hidden;
+                height: 100%;
             }
         </style>
+
+        <firebase-document
+                path="/documents/[[viewId]]"
+                data="{{view}}">
+        </firebase-document>
+
+        <firebase-document
+                path="[[computeDocPath(view)]]"
+                data="{{rootDoc}}">
+        </firebase-document>
 
         <div id="threejsNode"></div>
 
     </template>
 
     <script>
+        class ClassObject3d extends THREE.Object3D {
+            constructor(scene, doc, key, pos, classGeometry, font) {
+                super();
+
+                this.classMaterial = new THREE.MeshLambertMaterial( {color: 0x8904B1});
+                this.objectMaterial = new THREE.MeshLambertMaterial( {color:0x00A300});//0x00A300
+                this.connectorMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
+                this.textMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
+
+                this.scene = scene;
+                this.doc = doc;
+                this.key = key;
+                this.classGeometry = classGeometry;
+                this.font = font;
+
+
+                this.position.set(pos.x, pos.y, pos.z);
+
+                var classMesh = new THREE.Mesh(this.classGeometry, this.classMaterial);
+                classMesh.scale.set(100,100,100);
+                this.add(classMesh);
+
+                var text3d = new THREE.TextGeometry(doc.title, {size: 30, height: 1, font: this.font});
+                text3d.computeBoundingBox();
+                var xOffset = -0.5 * ( text3d.boundingBox.max.x - text3d.boundingBox.min.x );
+                var yOffset = -0.5 * ( text3d.boundingBox.max.y - text3d.boundingBox.min.y );
+                var textMesh = new THREE.Mesh(text3d, this.textMaterial);
+                textMesh.position.x = xOffset;
+                textMesh.position.y = yOffset;
+                textMesh.position.z = 55;
+                textMesh.rotation.x = 0;
+                textMesh.rotation.y = Math.PI * 2;
+                this.add(textMesh);
+
+
+                this.scene.add(this);
+
+                this.drawChildren();
+            }
+            drawChildren(){
+                var x = this.position.x;
+                var y = this.position.y - 400;
+                var z = this.position.z;
+
+                var ref = firebase.database().ref("documents");
+                ref.orderByChild('parentId').equalTo(this.key).once("value").then(snapshot => {
+                    if(snapshot.numChildren() >1) x = (snapshot.numChildren() - 1) * -800 / 2;
+                    snapshot.forEach(function(subClassSnap) {
+                        var subClassId = subClassSnap.key;
+                        console.log(subClassSnap.key, subClassSnap.val().title);
+                        //this.drawDoc(subClassSnap.val(), subClassSnap.key, new THREE.Vector3( x, y, z ));
+                        var obj = new ClassObject3d(
+                                this.scene,
+                                subClassSnap.val(),
+                                subClassSnap.key,
+                                new THREE.Vector3( x, y, z ),
+                                this.classGeometry,
+                                this.font);
+                        x += 800;
+                    }.bind(this));
+                });
+            }
+            /*
+
+            var x = pos.x;
+            var y = pos.y - 400;
+            var z = pos.z;
+
+            var ref = firebase.database().ref("documents");
+            ref.orderByChild('parentId').equalTo(key).once("value").then(snapshot => {
+            snapshot.forEach(function(subClassSnap) {
+            var subClassId = subClassSnap.key;
+            console.log(subClassSnap.key, subClassSnap.val().title);
+            this.drawDoc(subClassSnap.val(), subClassSnap.key, new THREE.Vector3( x, y, z ));
+            x += 800;
+        }.bind(this));
+        });*/
+        }
+
 
         class NqThreejsViewPort extends
                 Polymer.mixinBehaviors([Polymer.IronResizableBehavior], NqThreejsMixin(Polymer.Element)) {
@@ -37,6 +128,10 @@
                         value: 600,
                         //observer: '_resizeJob'
                     },
+                    rootDoc: {
+                        type: Object,
+                        observer: 'rootDocChanged'
+                    },
                     skyboxArray: {
                         type: Array,
                         value: function () {
@@ -50,26 +145,130 @@
                             ]
                         }
                     },
-                    clearColor: {
-                        value: '#222222'
-                    },
-                    showHelpers: {
-                        type: Boolean,
-                        value: false
-                    },
-                    // showCompass: {
-                    //   type: Boolean,
-                    //   value: false,
-                    // },
-                    // compassSize: {
-                    //   type: Number,
-                    //   value: 30
-                    // }
+
                 }
             }
             ready() {
                 super.ready();
-                this.init();
+
+                this.classMaterial = new THREE.MeshLambertMaterial( {color: 0x8904B1});
+                this.objectMaterial = new THREE.MeshLambertMaterial( {color:0x00A300});//0x00A300
+                this.connectorMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
+                this.textMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
+
+                var loader = new THREE.JSONLoader(true);
+
+                var promises = [];
+                promises.push(new Promise((resolve, reject) => {
+                    loader.load("../images/classMesh.json", function(geometry, materials) {
+                        resolve(geometry);
+                    });
+                }));
+                promises.push(new Promise((resolve, reject) => {
+                    loader.load("../images/objectMesh.json", function(geometry, materials) {
+                        resolve(geometry);
+                    });
+                }));
+                promises.push(new Promise((resolve, reject) => {
+                    var loader = new THREE.FontLoader();
+                    loader.load( '../images/helvetiker_regular.typeface.json', function ( font ){
+                        resolve(font);
+                    });
+                }));
+                Promise.all(promises).then(geometries => {
+                    this.classGeometry = geometries[0];
+                    this.objectGeometry = geometries[1];
+                    this.font = geometries[2];
+                    //this.drawDoc(this.rootDoc)
+                });
+
+            }
+            computeDocPath(view){
+                if(Object.keys(view).length === 0) return null;
+                return "/documents/"+this.getDocId(view);
+            }
+
+            getDocId(view){
+                if(!view || !view.rootQuery || !view.rootQuery.where || !view.rootQuery.where.value) return null;
+                var value = view.rootQuery.where.value;
+                var docId = value;
+                if(value === '$docId') docId = this.docId;
+                if(value === '$parent.initialDocId') return null;//$parent.initialDocId
+                return docId;
+            }
+
+            rootDocChanged(doc){
+                if(Object.keys(doc).length === 0)  return;
+
+                var obj = new ClassObject3d(
+                        this.scene,
+                        doc,
+                        this.getDocId(this.view),
+                        new THREE.Vector3( 0, 0, 0 ),
+                        this.classGeometry,
+                        this.font);
+                //this.scene.add(obj);
+                //obj.drawChildren();
+
+                //this.drawDoc(doc, this.getDocId(this.view), new THREE.Vector3( 0, 0, 0 ));
+            }
+            drawDoc(doc, key, pos){
+                var classObject = new THREE.Object3D();
+                classObject.position.set(pos.x, pos.y, pos.z);
+
+                var classMesh = new THREE.Mesh(this.classGeometry, this.classMaterial);
+                classMesh.scale.set(100,100,100);
+                classObject.add(classMesh);
+
+                var text3d = new THREE.TextGeometry(doc.title, {size: 30, height: 1, font: this.font});
+                text3d.computeBoundingBox();
+                var xOffset = -0.5 * ( text3d.boundingBox.max.x - text3d.boundingBox.min.x );
+                var yOffset = -0.5 * ( text3d.boundingBox.max.y - text3d.boundingBox.min.y );
+                var textMesh = new THREE.Mesh(text3d, this.textMaterial);
+                textMesh.position.x = xOffset;
+                textMesh.position.y = yOffset;
+                textMesh.position.z = 55;
+                textMesh.rotation.x = 0;
+                textMesh.rotation.y = Math.PI * 2;
+                classObject.add(textMesh);
+
+                this.scene.add(classObject);
+
+
+                var x = pos.x;
+                var y = pos.y - 400;
+                var z = pos.z;
+
+                var ref = firebase.database().ref("documents");
+                ref.orderByChild('parentId').equalTo(key).once("value").then(snapshot => {
+                    snapshot.forEach(function(subClassSnap) {
+                        var subClassId = subClassSnap.key;
+                        console.log(subClassSnap.key, subClassSnap.val().title);
+                        this.drawDoc(subClassSnap.val(), subClassSnap.key, new THREE.Vector3( x, y, z ));
+                        x += 800;
+                }.bind(this));
+                });
+
+            }
+
+            fetchSubClasses(classId){
+                var self = this;
+                var ref = firebase.database().ref("documents");
+                return ref.orderByChild('parentId').equalTo(classId).once("value").then(function(snapshot) {
+                    var subClassPromises = [];
+                    snapshot.forEach(function(subClassSnap) {
+                        var subClassId = subClassSnap.key;
+                        console.log(subClassSnap.key, subClassSnap.val().title);
+                        subClassPromises.push(self.fetchSubClasses(subClassId));
+                    });
+                    return Promise.all(subClassPromises).then(function(subClassIdsArrArr){
+                        var subClassIdsArr = [classId];
+                        subClassIdsArrArr.forEach(function(arr){
+                            subClassIdsArr = subClassIdsArr.concat(arr);
+                        });
+                        return subClassIdsArr;
+                    });
+                });
             }
 
             /*hostAttributes: {
