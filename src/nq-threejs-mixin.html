@@ -101,8 +101,8 @@
                         side: THREE.BackSide
                     }));
                 var skyMaterial = new THREE.MeshFaceMaterial(materialArray);
-                var skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
-                sceneObject3D.add( skyBox );
+                this.skyBox = new THREE.Mesh(skyGeometry, skyMaterial);
+                sceneObject3D.add( this.skyBox );
             }
 
             //else see http://threejs.org/examples/webgl_multiple_views.html
@@ -133,20 +133,12 @@
         }
 
         animate(){
-
             requestAnimationFrame(this.animate.bind(this));
-            //cube.position.copy(camera.position); //keep skybox centred around the camera
-            //this.mesh.rotation.x += 0.01;
-            //this.mesh.rotation.y += 0.02;
-
+            TWEEN.update();
+            this.camera.up = new THREE.Vector3(0,1,0);// Keep the camera level
+            this.skyBox.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z); //keep skybox centred around the camera
             this.controls.update();
             this.renderer.render(this.scene, this.camera);
-            /*
-            var requestId = requestAnimationFrame( this.animate.bind(this) );
-            TWEEN.update();
-            this.controls.update();
-            if(this.displayFPS) stats.update();
-            */
         }
         resize(event){
             var clientWidth = this.clientWidth;
