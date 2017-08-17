@@ -37,6 +37,7 @@
                 this.userData.key = key;
                 this.userData.doc = doc;
                 this.userData.children = [];
+                this.userData.connectorMaterial = connectorMaterial;
 
                 this.position.set(pos.x, pos.y, pos.z);
 
@@ -56,13 +57,122 @@
                 textMesh.rotation.y = Math.PI * 2;
                 this.add(textMesh);
             }
-            calculateX(){
-                var width = 800;
+            calculateX(x){
+                var ourX = x;
+                var maxXUntilNow = x;
                 this.userData.children.forEach(function(child){
-                    width += child.calculateX();
+                    maxXUntilNow = child.calculateX(x);
+                    x = maxXUntilNow + 800;
                 }.bind(this));
-                this.position.set(width, this.position.y, this.position.z);
-                return width;
+
+                if(this.userData.children.length>1){
+                    var minX = this.userData.children[0].position.x;
+                    var maxX = this.userData.children[(this.userData.children.length-1)].position.x;
+                    ourX = (maxX - minX)/2 + minX;
+                }
+                this.position.set(ourX, this.position.y, this.position.z);
+                return maxXUntilNow;
+            }
+
+            drawClassConnectors(modelObject3D){
+                if(this.userData.children.length>0){
+                    var parentEndVector = new THREE.Vector3( this.position.x, this.position.y-200, this.position.z );
+                    modelObject3D.add(this.drawBeam(this.position, parentEndVector, this.userData.connectorMaterial));
+
+                    var beamStartX = this.userData.children[0].position.x;
+                    var beamEndX = this.userData.children[this.userData.children.length-1].position.x;
+                    var beamStartVector = new THREE.Vector3( beamStartX, this.position.y-200, this.position.z );
+                    var beamtEndVector = new THREE.Vector3( beamEndX, this.position.y-200, this.position.z );
+                    modelObject3D.add(this.drawBeam(beamStartVector, beamtEndVector, this.userData.connectorMaterial));
+
+
+                    //sphere at the left end
+                    var sphereGeometry = new THREE.SphereGeometry( 10 );
+                    var sphereMesh = new THREE.Mesh( sphereGeometry, this.userData.connectorMaterial );
+                    sphereMesh.position.set(beamStartVector.x, beamStartVector.y, beamStartVector.z);
+                    modelObject3D.add(sphereMesh);
+
+
+                    //sphere at the right end
+                    var sphereGeometry = new THREE.SphereGeometry( 10 );
+                    var sphereMesh = new THREE.Mesh( sphereGeometry, this.userData.connectorMaterial );
+                    sphereMesh.position.set(beamtEndVector.x, beamtEndVector.y, beamtEndVector.z);
+                    modelObject3D.add(sphereMesh);
+
+                    this.userData.children.forEach(function(child){
+                        var childStartVector = new THREE.Vector3( child.position.x, child.position.y+200, child.position.z );
+                        modelObject3D.add(this.drawBeam(childStartVector, child.position, this.userData.connectorMaterial));
+                        child.drawClassConnectors(modelObject3D);
+                    }.bind(this));
+                }
+            }
+            drawBeam(p1, p2, material, sceneObject3D, name){
+                //https://stackoverflow.com/questions/15139649/three-js-two-points-one-cylinder-align-issue/15160850#15160850
+                var HALF_PI = Math.PI * .5;
+                var distance = p1.distanceTo(p2);
+                var position  = p2.clone().add(p1).divideScalar(2);
+
+                //var material = new THREE.MeshLambertMaterial({color:0x0000ff});
+                var cylinder = new THREE.CylinderGeometry(10,10,distance,10,10,false);
+
+                var orientation = new THREE.Matrix4();//a new orientation matrix to offset pivot
+                var offsetRotation = new THREE.Matrix4();//a matrix to fix pivot rotation
+                var offsetPosition = new THREE.Matrix4();//a matrix to fix pivot position
+                orientation.lookAt(p1,p2,new THREE.Vector3(0,1,0));//look at destination
+                offsetRotation.makeRotationX(HALF_PI);//rotate 90 degs on X
+                orientation.multiply(offsetRotation);//combine orientation with rotation transformations
+                cylinder.applyMatrix(orientation)
+
+                var mesh = new THREE.Mesh(cylinder,material);
+                mesh.position.set(position.x, position.y, position.z);
+                return mesh;
+
+                var diffVector = new THREE.Vector3();
+                diffVector.subVectors(p2, p1);
+
+                var beamVector = new THREE.Vector3( 0, 1, 0 );
+                var theta = beamVector.angleTo(diffVector);
+
+                var rotationAxis = new THREE.Vector3();
+                rotationAxis.crossVectors(beamVector, diffVector);
+                if ( rotationAxis.length() < 0.000001 )
+                {
+                    // Special case: if rotationAxis is just about zero, set to X axis,
+                    // so that the angle can be given as 0 or PI. This works ONLY
+                    // because we know one of the two axes is +Y.
+                    rotationAxis.set( 1, 0, 0 );
+                }
+                rotationAxis.normalize();
+
+                var postionVec = new THREE.Vector3();
+                postionVec.copy(diffVector);
+                postionVec.divideScalar(2);
+                postionVec.add(p1);
+
+                var orientation = new THREE.Matrix4();
+                orientation.matrixAutoUpdate = false;
+                orientation.makeRotationAxis(rotationAxis, theta);
+                orientation.setPosition(postionVec);
+
+                var beamLength = diffVector.length();
+                var beamGeometry = new THREE.CylinderGeometry(10, 10, beamLength, 12, 1, true );
+                beamGeometry.applyMatrix(orientation);//apply transformation for geometry
+                var beamMesh = new THREE.Mesh( beamGeometry, beamMaterial );
+                //beamMesh.position.set(p2.x,p2.y,p2.z);
+
+                if(name){
+                    var textMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
+                    var text3d = new THREE.TextGeometry(name, {size: 30, height: 1, font: 'helvetiker'});
+                    var textMesh = new THREE.Mesh(text3d, textMaterial);
+                    text3d.computeBoundingBox();
+                    var xOffset = -0.5 * ( text3d.boundingBox.max.x - text3d.boundingBox.min.x );
+                    textMesh.position = postionVec;
+                    textMesh.position.x += xOffset;
+                    textMesh.position.z += 20;
+                    textMesh.rotation.y = Math.PI * 2;
+                    sceneObject3D.add(textMesh);
+                }
+                return(beamMesh);
             }
 
         }
@@ -107,6 +217,7 @@
 
                 }
             }
+
             ready() {
                 super.ready();
 
@@ -148,7 +259,11 @@
 
                 this.collectDocs(this.getDocId(this.view), doc, new THREE.Vector3( 0, 0, 0 )).then(obj => {
                     this.rootObject3d = obj;
-                    obj.calculateX();
+                    obj.calculateX(0);
+
+                    this.modelObject3D.position.set(-(obj.position.x), 0, 0);
+
+                    obj.drawClassConnectors(this.modelObject3D);
                     console.log('done', obj);
                 });
             }
@@ -163,7 +278,7 @@
                         this.font,
                         this.textMaterial,
                         this.connectorMaterial);
-                this.scene.add(obj);
+                this.modelObject3D.add(obj);
 
                 var x = position.x;
                 var y = position.y - 400;

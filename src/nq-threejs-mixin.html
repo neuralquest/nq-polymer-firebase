@@ -38,8 +38,15 @@
         }
         ready() {
             super.ready();
+            // world
+            this.scene = new THREE.Scene();
 
             var sceneObject3D = new THREE.Object3D();
+            this.modelObject3D = new THREE.Object3D();
+
+            this.scene.add(sceneObject3D);
+            this.scene.add(this.modelObject3D);
+
 
             //camera
             this.camera = new THREE.PerspectiveCamera( 60, 3 / 2, 1, 100000 );
@@ -74,8 +81,6 @@
             this.controls.addEventListener('change', e => this.render(e));
 
 
-            // world
-            this.scene = new THREE.Scene();
 
             // lights
             var light1 = new THREE.DirectionalLight( 0xffffff );
@@ -116,12 +121,13 @@
 
             //this.connect(this.domNode, "onclick", "gotoObject");
             sceneObject3D.name = 'Boilerplate';
-            this.scene.add(sceneObject3D);
 
 
 
 
             this.addEventListener('iron-resize', e => this.resize(e));
+
+            this.addEventListener('click', e => this.gotoObject(e));
 
 
 			this.animate();
@@ -149,7 +155,7 @@
             this.controls.handleResize();
             this.render();
         }
-        /*
+
         gotoObject(event){
             //see http://stackoverflow.com/questions/11161674/dragging-and-clicking-objects-with-controls
             event.preventDefault();
@@ -191,6 +197,7 @@
             });
             tween.start();
         }
+        /*
         swapSelectedItemMaterial(mesh){
             var currentMaterial = mesh.material;
             if(this.selectedMeshMaterialBeforeSelection) {
