@@ -47,6 +47,7 @@
             this.scene.add(sceneObject3D);
             this.scene.add(this.modelObject3D);
 
+            this.selectableMeshArr = [];
 
             //camera
             this.camera = new THREE.PerspectiveCamera( 60, 3 / 2, 1, 100000 );
@@ -94,6 +95,7 @@
 
             // projector
             this.projector = new THREE.Projector();
+            this.raycaster = new THREE.Raycaster();
 
 
             // See https://stemkoski.github.io/Three.js/Skybox.html
@@ -119,7 +121,7 @@
                 this.domNode.appendChild( stats.domElement );
             }
 
-            //this.connect(this.domNode, "onclick", "gotoObject");
+            //this.connect(this.domNode, "onclick", "onClick");
             sceneObject3D.name = 'Boilerplate';
 
 
@@ -127,7 +129,7 @@
 
             this.addEventListener('iron-resize', e => this.resize(e));
 
-            this.addEventListener('click', e => this.gotoObject(e));
+            this.addEventListener('click', e => this.onClick(e));
 
 
 			this.animate();
@@ -156,68 +158,63 @@
             this.render();
         }
 
-        gotoObject(event){
-            //see http://stackoverflow.com/questions/11161674/dragging-and-clicking-objects-with-controls
+        onClick(event){
+            //see https://threejs.org/docs/#api/core/Raycaster.setFromCamera
             event.preventDefault();
-            domGeom.normalizeEvent(event);
-            var positionInfo = dojo.position(this.domNode.parentNode, true);
-            var clientWidth = positionInfo.w;
-            var clientHeight = positionInfo.h;
-            var x = ( event.offsetX / clientWidth ) * 2 - 1;
-            var y = - ( event.offsetY / clientHeight ) * 2 + 1;
-            var vector = new THREE.Vector3( x, y, 0.5 );
-            projector.unprojectVector( vector, camera );
-            var raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-            var intersects = raycaster.intersectObjects( this.selectableObjects );
+
+            //get 2D coordinates of the mouse, in normalized device coordinates (NDC)
+            //var x = event.offsetX - this.$.threejsNode.offsetLeft;
+            //var y = event.offsetY - this.$.threejsNode.offsetTop;
+            var box = event.target.getBoundingClientRect();
+            var x = ( event.offsetX / box.width ) * 2 - 1;
+            var y = - ( event.offsetY / box.height ) * 2 + 1;
+            var mouse = new THREE.Vector2(x,y);
+
+            // update the picking ray with the camera and mouse position
+            this.raycaster.setFromCamera( mouse, this.camera );
+            var intersects = this.raycaster.intersectObjects( this.selectableMeshArr );
             if ( intersects.length > 0 ) {
-                console.log(intersects);
                 var selectedMesh = intersects[0].object;
-                this.moveCameraToMesh(selectedMesh);
+                var key = selectedMesh.parent.userData.key;
+
+                // Update the hash so that is reflects the current selected object3D
+                // Ths will trigger the route.path observer
+                var pathArr = this.route.path.split('.');
+                var idx = (this.level+1)*4;
+                pathArr[idx] = key;
+                var pathArr = pathArr.slice(0, idx+2);
+                var newPath = pathArr.join('.');
+                this.set('route.path', newPath);
             }
         }
-        moveCameraToMesh(selectedMesh){
-            this.swapSelectedItemMaterial(selectedMesh);
+        moveCameraToPos(modelObj){
+            //console.log('selected modelObj', modelObj.name);
 
+            this.scene.updateMatrixWorld();
             var newTargetPos = new THREE.Vector3();
-            newTargetPos.getPositionFromMatrix(selectedMesh.matrixWorld);
+            newTargetPos.setFromMatrixPosition(modelObj.matrixWorld);
+
             var newCameraPos = newTargetPos.clone();
             newCameraPos.z = 2000;
-
-            var cameraPos = camera.position;
-            var target = controls.target;
+            var cameraPos = this.camera.position;
+            var target = this.controls.target;
             var fromPos = {tx: target.x, ty: target.y, tz: target.z, cx: cameraPos.x, cy: cameraPos.y, cz: cameraPos.z};
             var toPos = {tx: newTargetPos.x, ty: newTargetPos.y, tz: newTargetPos.z, cx: newCameraPos.x, cy: newCameraPos.y, cz: newCameraPos.z};
             var tween = new TWEEN.Tween(fromPos).to(toPos, 1500);
             tween.easing(TWEEN.Easing.Quadratic.Out);
+
+            var controls = this.controls;
             tween.onUpdate(function(){
                 var tweenTargetPos = new THREE.Vector3(this.tx, this.ty, this.tz);
                 var tweenCameraPos = new THREE.Vector3(this.cx, this.cy, this.cz);
-                controls.object.position = tweenCameraPos;
+                //console.log('tweenCameraPos', tweenCameraPos);
+                controls.object.position.set( tweenCameraPos.x, tweenCameraPos.y, tweenCameraPos.z );
                 controls.target = tweenTargetPos;
             });
             tween.start();
         }
-        /*
-        swapSelectedItemMaterial(mesh){
-            var currentMaterial = mesh.material;
-            if(this.selectedMeshMaterialBeforeSelection) {
-                //set the material of the current selected mesh to what it was
-                this.selectedMesh.material = this.selectedMeshMaterialBeforeSelection;
-            }
-            this.selectedItemId = mesh.name;
-            this.selectedMesh = mesh;
-            this.selectedMeshMaterialBeforeSelection = currentMaterial;
-            var highlightMaterial = new THREE.MeshLambertMaterial({color: 0xFFFF33});
-            mesh.material = highlightMaterial;
-            //===============================
-            //var materials = [
-            //	new THREE.MeshLambertMaterial( { color: 0x0000ff, shading: THREE.FlatShading, vertexColors: THREE.VertexColors } ),
-            //	new THREE.MeshBasicMaterial( { color: 0x000000, shading: THREE.FlatShading, wireframe: true, transparent: true } )
-            //];
-            //var cube = THREE.SceneUtils.createMultiMaterialObject( cubeGeometry, materials );
-            //===============================
 
-        }
+/*
         startup(){
             //this.resize();
             //var pane = registry.byId('tab'+this.tabId);

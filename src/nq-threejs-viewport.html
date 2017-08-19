@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="nq-threejs.html">
 <link rel="import" href="nq-threejs-mixin.html">
 
@@ -13,6 +14,8 @@
                 height: 100%;
             }
         </style>
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
 
         <firebase-document
                 path="/documents/[[viewId]]"
@@ -38,6 +41,7 @@
                 this.userData.doc = doc;
                 this.userData.children = [];
                 this.userData.connectorMaterial = connectorMaterial;
+                this.userData.material = material;
 
                 this.position.set(pos.x, pos.y, pos.z);
 
@@ -73,7 +77,31 @@
                 this.position.set(ourX, this.position.y, this.position.z);
                 return maxXUntilNow;
             }
-
+            collectSelectableMeshes(selectableMeshArr){
+                selectableMeshArr.push(this.children[0]);
+                this.userData.children.forEach(function(child){
+                    child.collectSelectableMeshes(selectableMeshArr);
+                }.bind(this));
+            }
+            getModelObject3DByKey(key){
+                if(this.userData.key === key) return this;
+                var resObj
+                this.userData.children.some(function(child){
+                    var obj = child.getModelObject3DByKey(key);
+                    if(obj) {
+                        resObj = obj;
+                        return true;
+                    }
+                }.bind(this));
+                return resObj;
+            }
+            selectByKey(key){
+                if(this.userData.key === key) this.children[0].material = new THREE.MeshLambertMaterial({color: 0xFFFF33});
+                else this.children[0].material = this.userData.material;
+                this.userData.children.forEach(function(child){
+                    child.selectByKey(key);
+                }.bind(this));
+            }
             drawClassConnectors(modelObject3D){
                 if(this.userData.children.length>0){
                     var parentEndVector = new THREE.Vector3( this.position.x, this.position.y-200, this.position.z );
@@ -214,10 +242,13 @@
                             ]
                         }
                     },
-
                 }
             }
-
+            static get observers() {
+                return [
+                    'routePathChanged(route.path)'
+                ]
+            }
             ready() {
                 super.ready();
 
@@ -257,14 +288,27 @@
             rootDocChanged(doc){
                 if(Object.keys(doc).length === 0) return;
 
+                // Collect all the documents that we will be using.
+                // This is done recusivly and asyncronosly. the result is promise to the rootObject3D.
                 this.collectDocs(this.getDocId(this.view), doc, new THREE.Vector3( 0, 0, 0 )).then(obj => {
-                    this.rootObject3d = obj;
+                    this.rootObject3D = obj;
+
+                    // Determine and set the x position, depending on chidren width
                     obj.calculateX(0);
 
+                    // Shift the model to the left so that the camera is looking at it
                     this.modelObject3D.position.set(-(obj.position.x), 0, 0);
 
+                    // Now that we have a rootObject3D we can highlight it and naviagte to it.
+                    // To do this we just call the path observer.
+                    this.routePathChanged(this.route.path);
+
+                    // Tell the classes to draw their connectors
                     obj.drawClassConnectors(this.modelObject3D);
-                    console.log('done', obj);
+
+                    // Get an array of selectable meshes
+                    obj.collectSelectableMeshes(this.selectableMeshArr);
+                    //console.log('done', obj);
                 });
             }
 
@@ -314,6 +358,17 @@
                 return docId;
             }
 
+            routePathChanged(path){
+                if(!this.rootObject3D) return;
+                var pathArr = path.split('.');
+                var idx = (this.level+1)*4;
+                var key = pathArr[idx];
+                if(key) {
+                    this.rootObject3D.selectByKey(key);
+                    var modelObj = this.rootObject3D.getModelObject3DByKey(key);
+                    if(modelObj) this.moveCameraToPos(modelObj);
+                }
+            }
             /*hostAttributes: {
                     tabindex: 0,
                     oncontextmenu: "return false;"
