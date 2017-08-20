@@ -259,11 +259,11 @@ yes
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
-                            <div>{{propValue.value}}</div>
+                            <pre class="nest">[[computeJsonString(propValue.value)]]</pre>
                         </template>
                         <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-text-field class="full-width"
-                                               value="{{propValue.value}}"
+                                               value="{{computeJsonString(propValue.value)}}"
                                                minlength="[[propValue.minLength]]"
                                                maxlength="[[propValue.maxLength]]"
                                                prevent-invalid-input></vaadin-text-field>
@@ -351,13 +351,16 @@ yes
                     return {
                         path: attrProps.path+'.'+key,
                         attrProps: obj[key],
-                        value: doc[key]
+                        value: doc?doc[key]:null
                     };
                 });
                 return arr;
             }
             computeBoolString(value){
                 return value?'true':'false';
+            }
+            computeJsonString(value){
+                return JSON.stringify(value, null, '    ');
             }
             computeDateString(value){
                 var date = Date.parse(value);
@@ -382,6 +385,10 @@ yes
                     if(attrProps.enum) return type === 'enum';
                     if(attrProps.query) return type === 'query';
                     return type === 'string';
+                }
+                else if(attrProps.type === 'object'){
+                    if(attrProps.properties) return type === 'object';
+                    else return type === 'json';
                 }
                 else return attrProps.type === type;
             }

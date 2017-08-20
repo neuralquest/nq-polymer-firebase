@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <!--
 `my-blank-element`
@@ -25,25 +25,15 @@ yes
 
         </style>
 
-        <firebase-document
-                path="/documents/{{docId}}"
-                data="{{doc}}">
-        </firebase-document>
+<p>HOME</p>
 
-        <!--<div class="fit overflowy">[[doc.description]]</div>-->
+        <firebase-query
+                path="/documents"
+                order-by-child="classId"
+                equal-to="573435c23c6d3cd598a5a2df"
+                data="{{views}}" log>
+        </firebase-query>
 
-        <polymer-quill-html-render
-                class="fit full"
-                id="quilDoc"
-                content="{{doc.description}}">
-        </polymer-quill-html-render>
-
-        <!--<polymer-quill
-                class="full"
-                id="quilDoc"
-                content="<h2>Hello World! - Store as HTML</h2>"
-                store-as="html">
-        </polymer-quill>-->
 
     </template>
 
@@ -63,18 +53,23 @@ yes
                         value: function() { return {}; },
                         //observer: 'dataChanged'
                     },
-                    doc:{
-                        type:Object,
-                        value: function() { return {}; },
+                    views:{
+                        type:Array,
+                        value: function() { return []; },
                         //observer: 'dataChanged'
                     }
                 };
             }
-            dataChanged(newValue, oldValue) {
-                console.log('nq-home doc from:', oldValue, 'to:', newValue);
+            static get observers() {
+                return [
+                    'dataChanged(views.length)'
+                ];
             }
-            ready(){
-                //console.log('nq-home ready level: ', this.level, 'viewId', this.viewId);
+            dataChanged(views, oldValue) {
+                if(!views) return;
+                views.forEach(function(view){
+                    console.log('view:', view.rootQuery, view.query);
+                });
             }
         }
         window.customElements.define(NqHome.is, NqHome);
