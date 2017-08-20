@@ -40,6 +40,7 @@
                 this.userData.key = key;
                 this.userData.doc = doc;
                 this.userData.children = [];
+                this.userData.instances = [];
                 this.userData.connectorMaterial = connectorMaterial;
                 this.userData.material = material;
 
@@ -79,13 +80,21 @@
             }
             collectSelectableMeshes(selectableMeshArr){
                 selectableMeshArr.push(this.children[0]);
+                this.userData.instances.forEach(function(child){
+                    selectableMeshArr.push(child.children[0]);
+                }.bind(this));
                 this.userData.children.forEach(function(child){
                     child.collectSelectableMeshes(selectableMeshArr);
                 }.bind(this));
             }
             getModelObject3DByKey(key){
                 if(this.userData.key === key) return this;
-                var resObj
+
+                var resObj = this.userData.instances.find(function(child){
+                    return (child.userData.key === key);
+                });
+                if(resObj) return resObj;
+
                 this.userData.children.some(function(child){
                     var obj = child.getModelObject3DByKey(key);
                     if(obj) {
@@ -96,17 +105,34 @@
                 return resObj;
             }
             selectByKey(key){
+                // Select/unselect this Objec3D
                 if(this.userData.key === key) this.children[0].material = new THREE.MeshLambertMaterial({color: 0xFFFF33});
                 else this.children[0].material = this.userData.material;
+                this.userData.instances.forEach(function(child){
+                    // Select/unselect child Objec3D
+                    if(child.userData.key === key) child.children[0].material = new THREE.MeshLambertMaterial({color: 0xFFFF33});
+                    else child.children[0].material = child.userData.material;
+                }.bind(this));
                 this.userData.children.forEach(function(child){
                     child.selectByKey(key);
                 }.bind(this));
             }
+            findMinY(){
+                var minYUntilNow = this.position.y
+                this.userData.children.forEach(function(child){
+                    var minY = child.findMinY();
+                    minYUntilNow = minY<minYUntilNow?minY:minYUntilNow;
+                }.bind(this));
+                return minYUntilNow;
+            }
             drawClassConnectors(modelObject3D){
                 if(this.userData.children.length>0){
+
+                    //vertical beam from parent class
                     var parentEndVector = new THREE.Vector3( this.position.x, this.position.y-200, this.position.z );
                     modelObject3D.add(this.drawBeam(this.position, parentEndVector, this.userData.connectorMaterial));
 
+                    //horizontal beam
                     var beamStartX = this.userData.children[0].position.x;
                     var beamEndX = this.userData.children[this.userData.children.length-1].position.x;
                     var beamStartVector = new THREE.Vector3( beamStartX, this.position.y-200, this.position.z );
@@ -127,12 +153,26 @@
                     sphereMesh.position.set(beamtEndVector.x, beamtEndVector.y, beamtEndVector.z);
                     modelObject3D.add(sphereMesh);
 
+                    //for each of the child classes
                     this.userData.children.forEach(function(child){
+
+                        //beam from child class to horizontal beam
                         var childStartVector = new THREE.Vector3( child.position.x, child.position.y+200, child.position.z );
                         modelObject3D.add(this.drawBeam(childStartVector, child.position, this.userData.connectorMaterial));
+
+                        //tell the child class to do the same
                         child.drawClassConnectors(modelObject3D);
                     }.bind(this));
                 }
+            }
+            drawObjectConnectors(modelObject3D){
+                if(this.userData.instances.length>0){
+                    var endVector = this.userData.instances[this.userData.instances.length-1].position;
+                    modelObject3D.add(this.drawBeam(this.position, endVector, this.userData.connectorMaterial));
+                }
+                this.userData.children.forEach(function(child){
+                    child.drawObjectConnectors(modelObject3D);
+                }.bind(this));
             }
             drawBeam(p1, p2, material, sceneObject3D, name){
                 //https://stackoverflow.com/questions/15139649/three-js-two-points-one-cylinder-align-issue/15160850#15160850
@@ -140,7 +180,6 @@
                 var distance = p1.distanceTo(p2);
                 var position  = p2.clone().add(p1).divideScalar(2);
 
-                //var material = new THREE.MeshLambertMaterial({color:0x0000ff});
                 var cylinder = new THREE.CylinderGeometry(10,10,distance,10,10,false);
 
                 var orientation = new THREE.Matrix4();//a new orientation matrix to offset pivot
@@ -258,61 +297,61 @@
                 this.textMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
 
                 var loader = new THREE.JSONLoader(true);
+                loader.load("../images/classMesh.json", function(geometry, materials) {
+                    this.classGeometry = geometry;
+                }.bind(this));
 
-                var promises = [];
-                promises.push(new Promise((resolve, reject) => {
-                    loader.load("../images/classMesh.json", function(geometry, materials) {
-                        resolve(geometry);
-                    });
-                }));
-                promises.push(new Promise((resolve, reject) => {
-                    loader.load("../images/objectMesh.json", function(geometry, materials) {
-                        resolve(geometry);
-                    });
-                }));
-                promises.push(new Promise((resolve, reject) => {
-                    var loader = new THREE.FontLoader();
-                    loader.load( '../images/helvetiker_regular.typeface.json', function ( font ){
-                        resolve(font);
-                    });
-                }));
-                Promise.all(promises).then(geometries => {
-                    this.classGeometry = geometries[0];
-                    this.objectGeometry = geometries[1];
-                    this.font = geometries[2];
-                    //this.drawDoc(this.rootDoc)
-                });
+                loader.load("../images/classMesh.json", function(geometry, materials) {
+                    this.objectGeometry = geometry;
+                }.bind(this));
+
+                var fontLoader = new THREE.FontLoader();
+                fontLoader.load( '../images/helvetiker_regular.typeface.json', function ( font ){
+                    this.font = font;
+                }.bind(this));
 
             }
 
             rootDocChanged(doc){
                 if(Object.keys(doc).length === 0) return;
 
-                // Collect all the documents that we will be using.
+                // Collect all the classes that we will be using.
                 // This is done recusivly and asyncronosly. the result is promise to the rootObject3D.
-                this.collectDocs(this.getDocId(this.view), doc, new THREE.Vector3( 0, 0, 0 )).then(obj => {
-                    this.rootObject3D = obj;
+                this.collectAndDrawClasses(this.getDocId(this.view), doc, new THREE.Vector3( 0, 0, 0 )).then(rootObj => {
+                    this.rootObject3D = rootObj;
 
                     // Determine and set the x position, depending on chidren width
-                    obj.calculateX(0);
+                    rootObj.calculateX(0);
 
                     // Shift the model to the left so that the camera is looking at it
-                    this.modelObject3D.position.set(-(obj.position.x), 0, 0);
-
-                    // Now that we have a rootObject3D we can highlight it and naviagte to it.
-                    // To do this we just call the path observer.
-                    this.routePathChanged(this.route.path);
+                    this.modelObject3D.position.set(-(rootObj.position.x), 0, 0);
 
                     // Tell the classes to draw their connectors
-                    obj.drawClassConnectors(this.modelObject3D);
+                    rootObj.drawClassConnectors(this.modelObject3D);
 
-                    // Get an array of selectable meshes
-                    obj.collectSelectableMeshes(this.selectableMeshArr);
-                    //console.log('done', obj);
+                    // Get the lowest Y so we know where to start drawing objects
+                    var minY = rootObj.findMinY()-400;
+
+                    // Collect all the objects that we will be using.
+                    // This is done recusivly and asyncronosly.
+                    this.collectAndDrawObjects(rootObj, minY).then(res =>{
+
+                        // Tell the classes to draw their object connectors
+                        rootObj.drawObjectConnectors(this.modelObject3D);
+
+                        // Get an array of selectable meshes
+                        rootObj.collectSelectableMeshes(this.selectableMeshArr);
+                        //console.log('done', rootObj);
+
+                        // Highlight the slected object and naviagte to it.
+                        // To do this we just call the path observer.
+                        this.routePathChanged(this.route.path);
+                     });
+
                 });
             }
 
-            collectDocs(key, doc, position){
+            collectAndDrawClasses(key, doc, position){
                 var obj = new modelObject3d(
                         doc,
                         key,
@@ -333,7 +372,7 @@
                     var promises = [];
                     snapshot.forEach(function(subClassSnap) {
                           //console.log(subClassSnap.key, subClassSnap.val().title);
-                          promises.push(this.collectDocs(subClassSnap.key, subClassSnap.val(), new THREE.Vector3( x, y, z )));
+                          promises.push(this.collectAndDrawClasses(subClassSnap.key, subClassSnap.val(), new THREE.Vector3( x, y, z )));
                           x += 800;
                     }.bind(this));
                     return Promise.all(promises).then(childObjsArr => {
@@ -341,6 +380,33 @@
                         //console.log('childObjsArr', childObjsArr);
                         return(obj);
                     });
+                });
+            }
+            collectAndDrawObjects(object3D, minY){
+
+                var ref = firebase.database().ref("documents");
+                return ref.orderByChild('classId').equalTo(object3D.userData.key).once("value").then(snapshot => {
+                    snapshot.forEach(function(subClassSnap) {
+                        //console.log(subClassSnap.key, subClassSnap.val().title);
+                        var obj = new modelObject3d(
+                                subClassSnap.val(),
+                                subClassSnap.key,
+                                new THREE.Vector3( object3D.position.x, minY, object3D.position.z ),
+                                this.objectGeometry,
+                                this.objectMaterial,
+                                this.font,
+                                this.textMaterial,
+                                this.connectorMaterial);
+                        this.modelObject3D.add(obj);
+                        object3D.userData.instances.push(obj);
+                        minY -= 400;
+                    }.bind(this));
+                    var promises = [];
+                    object3D.userData.children.forEach(function(child){
+                        promises.push(this.collectAndDrawObjects(child, minY));
+                    }.bind(this));
+                    return Promise.all(promises);
+
                 });
             }
 

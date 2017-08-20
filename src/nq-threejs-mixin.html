@@ -54,7 +54,7 @@
             this.camera.position.z = 2000;
             //by changing the eulerOrder we can force the camera to keep its head level
             //see: http://stackoverflow.com/questions/17517937/three-js-camera-tilt-up-or-down-and-keep-horizon-level
-            this.camera.rotation.order = "YXZ";
+            //this.camera.rotation.order = "YXZ";
 
             // renderer
             //this.renderer = new THREE.WebGLRenderer( {antialias: true} );
@@ -215,34 +215,7 @@
         }
 
 /*
-        startup(){
-            //this.resize();
-            //var pane = registry.byId('tab'+this.tabId);
-            this.resize();
-            this.loadingMessage();
-            animate();
-        }
-        resize(changeSize){
-            var positionInfo = dojo.position(this.domNode.parentNode, true);
-            var clientWidth = positionInfo.w;
-            var clientHeight = positionInfo.h;
-            camera.aspect = clientWidth / clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize( clientWidth, clientHeight );
-            controls.handleResize();
-            render();
-            this.inherited(arguments);
-        }
-        /*
-         onShow(){
-         animate();
-         this.inherited(arguments);
-         }
-         onHide(){
-         cancelAnimation();
-         this.inherited(arguments);
-         }
-         * /
+
         destroy(){
             cancelAnimation();
             for ( var i = scene.children.length - 1; i >= 0 ; i -- ) {
@@ -261,55 +234,8 @@
             }
             render();
         }
-        addToScene(object3D, headerOrBody){
-            switch(headerOrBody){
-                case 'rowHeader':
-                    this.rowHeaderObject = object3D;
-                    scene.add(object3D);
-                    break;
-                case 'columnHeader':
-                    this.columnHeaderObject = object3D;
-                    scene.add(object3D);
-                    break;
-                default:
-                    this.bodyObject = object3D;
-                    scene.add(object3D);
-                    break;
-            }
-            render();
-        }
-        loadingMessage(){
-            var textMaterial = new THREE.MeshLambertMaterial({color: 0xEFEFEF});
-            //'Loading...'
-            var text3d = new THREE.TextGeometry('Loading...', {size: 50, font: 'helvetiker'});
-            text3d.computeBoundingBox();
-            var xOffset = -0.5 * ( text3d.boundingBox.max.x - text3d.boundingBox.min.x );
-            var yOffset = -0.5 * ( text3d.boundingBox.max.y - text3d.boundingBox.min.y );
-            var textMesh = new THREE.Mesh(text3d, textMaterial);
-            textMesh.position.x = xOffset;
-            textMesh.position.y = 400;
-            textMesh.position.z = 0;
-            textMesh.rotation.x = 0;
-            textMesh.rotation.y = Math.PI * 2;
-            textMesh.name = 'Loading Message';
-            scene.add(textMesh);
-            render();
-        }
-        getMeshByName(name){
-            for(var i=0;i<this.selectableObjects.length;i++){
-                var selectableObject = this.selectableObjects[i];
-                if(selectableObject.name == name){
-                    return selectableObject;
-                }
-            }
-        }
 
-        animate(){
-            requestId = requestAnimationFrame( animate.bind(this) );
-            TWEEN.update();
-            controls.update();
-            if(this.displayFPS) stats.update();
-        }
+
         cancelAnimation(){
             if(requestId) cancelAnimationFrame(requestId);
             requestId = undefined;
