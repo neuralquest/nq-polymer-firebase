@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
 <!--
 `my-blank-element`
 yes
@@ -22,18 +24,31 @@ yes
                 height: 100%;
                 position: relative;
             }
-
+            paper-button {
+                background: #4285f4;
+                color: white;
+            }
         </style>
 
-<p>HOME</p>
+<!--
 
+-->
         <firebase-query
-                path="/documents"
-                order-by-child="classId"
-                equal-to="573435c23c6d3cd598a5a2df"
-                data="{{views}}" log>
+                id="ajax"
+                path=""
+                data="{{views}}">
         </firebase-query>
 
+        <paper-button on-tap="onTap">Query</paper-button>
+        <paper-button on-tap="onTap2">compute qury</paper-button>
+
+        <a-scene>
+            <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+            <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
+            <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
+            <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+            <a-sky color="#ECECEC"></a-sky>
+        </a-scene>
 
     </template>
 
@@ -56,20 +71,94 @@ yes
                     views:{
                         type:Array,
                         value: function() { return []; },
-                        //observer: 'dataChanged'
+                        observer: 'dataChanged'
                     }
                 };
             }
-            static get observers() {
+            static get Xobservers() {
                 return [
-                    'dataChanged(views.length)'
+                    'dataChanged(views)'
                 ];
             }
             dataChanged(views, oldValue) {
-                if(!views) return;
+                //if(!views) return;
+                //console.log('OBSERVER:',views);
+            return;
                 views.forEach(function(view){
                     console.log('view:', view.rootQuery, view.query);
                 });
+            }
+            onTap(event) {
+
+                this.$.ajax.set('path',"/documents");
+                this.$.ajax.set('orderByChild','classId');
+                this.$.ajax.set('equalTo','573435c23c6d3cd598a5a2df');
+            }
+            onTap2(event) {
+                this.views.forEach(function(view, idx){
+                    if(view.rootQuery){
+                        var newQuery = JSON.parse(JSON.stringify(view.rootQuery));
+
+                        newQuery.where.value = newQuery.where.value.replace("$parent", "$parentNode");
+                        newQuery.where.value = newQuery.where.value.replace("_id", "$key");
+                        newQuery.where.docProp = newQuery.where.docProp.replace("_id", "$key");
+
+                        delete newQuery.recursive;
+
+                        if(view.query) {
+                            //console.log('QUERY:', view.name);
+                            //console.dir(view.query);
+                            var newQueryArr = JSON.parse(JSON.stringify(view.query));
+                            //var newQuery = Object.assign({}, view.query);
+                            newQueryArr.forEach(function(query){
+                                this.replaceJoin(query);
+                            }.bind(this));
+
+                            newQuery.join = newQueryArr;
+                            //view.newQuery.join = newQueryArr;
+                            //console.dir(this.get('views.'+idx+'.rootQuery'));
+                        }
+                        //this.set('views.'+idx+'.newQuery', newQuery);
+                    }
+                }.bind(this));
+                this.views.forEach(function(view, idx){
+                    if(view.newQuery){
+                        console.log('QUERY:', view.name);
+                        console.dir(view.newQuery);
+                    }
+                }.bind(this));
+            }
+            replaceJoin(query){
+                var joinArr = [];
+                if(query.where){
+                    if(query.where.value) {
+                        query.where.value = query.where.value.replace("$parent", "$parentNode");
+                        query.where.value = query.where.value.replace("_id", "$key");
+                    }
+                    if(query.where.docProp) query.where.docProp = query.where.docProp.replace("_id", "$key");
+                }
+
+                if(query.join){
+                    if(Array.isArray(query.join)){
+                        joinArr = query.join;
+                    }
+                    else{
+                        joinArr.push(query.join);
+                    }
+                }
+
+                if(query.recursive){
+                    var queryname = query.recursive;
+                    if(queryname =='schemaQuery') queryname = 'viewQuery';
+                    joinArr.push({queryByName:queryname});
+                }
+                delete query.recursive;
+
+                joinArr.forEach(function(join){
+                    this.replaceJoin(join);
+                }.bind(this));
+                if(joinArr.length>0) query.join = joinArr;
+                //console.log('query.join:', query.join);
             }
         }
         window.customElements.define(NqHome.is, NqHome);

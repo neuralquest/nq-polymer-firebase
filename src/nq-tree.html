@@ -57,23 +57,17 @@ yes
             static get properties() {
                 return {
                     /**
-                     * `level` is the current selected `<paper-tree-node>` in the tree.
+                     * `level` The level in the hash that this page represents.
                      */
                     level: Number,
+
                     /**
-                     * `viewId` is the current selected `<paper-tree-node>` in the tree.
+                     * `viewId` Id of the view that this page will display.
                      */
                     viewId: String,
+
                     /**
-                     * `docId` is the current selected `<paper-tree-node>` in the tree.
-                     */
-                    docId: String,
-                    /**
-                     * `pageId` is the current selected `<paper-tree-node>` in the tree.
-                     */
-                    pageId: String,
-                    /**
-                     * `data` is the data passed to `<nq-tree-node>`.
+                     * `data` is the data passed to `<nq-tree-node>` to serve as a root node.
                      */
                     data: {
                         type: 'Object',
@@ -83,9 +77,10 @@ yes
             }
 
             /**
-             * Called when the `select` event is fired from an internal node.
+             * Returns path for the document query, only after we have a view.
+             * The path is initially left empty to prevent unnecessary io.
              *
-             * @param {object} e An event object.
+             * @param {object} view A view object.
              */
             computeDocPath(view){
                 if(Object.keys(view).length === 0) return null;
@@ -93,9 +88,9 @@ yes
             }
 
             /**
-             * Called when the `select` event is fired from an internal node.
+             * Get docId from the root query in the view.
              *
-             * @param {object} e An event object.
+             * @param {object} view A view object.
              */
             getDocId(view){
                 if(!view || !view.rootQuery || !view.rootQuery.where || !view.rootQuery.where.value) return null;

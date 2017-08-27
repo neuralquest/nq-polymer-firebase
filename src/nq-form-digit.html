@@ -61,7 +61,25 @@ yes
 
                 <!-- Richtext -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'html')]]">
-                    <vaadin-form-item>
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <div inner-h-t-m-l="{{propValue.value}}"></div>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </vaadin-form-item>
+                    </template>
+
+
+                    <!--<vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[(propValue.attrProps.readOnly,editMode)]]">
                             <div inner-h-t-m-l="{{propValue.value}}"></div>
@@ -73,18 +91,34 @@ yes
                                                maxlength="[[propValue.maxLength]]"
                                                prevent-invalid-input></vaadin-text-field>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
-
-                <!-- Richtext
-                <template is="dom-if" if="[[_typeStringHtml(propValue.attrProps)]]">
-
-                </template>
--->
                 <!-- Base64 -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'img')]]">
-                      <vaadin-form-item>
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <img src="{{propValue.value}}"
+                                 width="24px"
+                                 height="24px">
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <img src="{{propValue.value}}"
+                                 width="24px"
+                                 height="24px">
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </vaadin-form-item>
+                    </template>
+
+                      <!--<vaadin-form-item>
                           <label slot="label">[[propValue.attrProps.title]]</label>
                           <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                               <img src="{{propValue.value}}"
@@ -101,11 +135,26 @@ yes
                                                  maxlength="[[propValue.maxLength]]"
                                                  prevent-invalid-input></vaadin-text-field>
                           </template>
-                      </vaadin-form-item>
+                      </vaadin-form-item>-->
                 </template>
 
                 <!-- WbbGl -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'webGL')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <div>{{propValue.value}}</div>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"></vaadin-text-field>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -115,11 +164,27 @@ yes
                             <vaadin-text-field class="full-width"
                                    value="{{propValue.value}}"></vaadin-text-field>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!-- Date -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'date')]]">
+                    <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                            <vaadin-form-item>
+                                <label slot="label">[[propValue.attrProps.title]]</label>
+                                <div>{{computeDateString(propValue.value)}}</div>
+                            </vaadin-form-item>
+                        </template>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <vaadin-date-picker value="{{propValue.value}}"></vaadin-date-picker>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -128,11 +193,29 @@ yes
                         <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
                             <vaadin-date-picker value="{{propValue.value}}"></vaadin-date-picker>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!-- Uri -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'uri')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <div>{{propValue.value}}</div>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -145,7 +228,7 @@ yes
                                                maxlength="[[propValue.maxLength]]"
                                                prevent-invalid-input></vaadin-text-field>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!-- Enum -->
@@ -174,6 +257,32 @@ yes
 
                 <!-- Query -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'query')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <nq-combobox
+                                    query="[[propValue.attrProps.query]]"
+                                    doc-id="[[docId]]"
+                                    read-only="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]"
+                                    value="{{propValue.value}}"
+                                    noLabelFloat>
+                            </nq-combobox>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <nq-combobox
+                                    query="[[propValue.attrProps.query]]"
+                                    doc-id="[[docId]]"
+                                    read-only="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]"
+                                    value="{{propValue.value}}"
+                                    noLabelFloat>
+                            </nq-combobox>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <nq-combobox
@@ -183,11 +292,29 @@ yes
                                 value="{{propValue.value}}"
                                 noLabelFloat>
                         </nq-combobox>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!--String-->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'string')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <div>{{propValue.value}}</div>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -200,11 +327,28 @@ yes
                                                maxlength="[[propValue.maxLength]]"
                                                prevent-invalid-input></vaadin-text-field>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!--Number-->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'number')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <div>{{propValue.value}}</div>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <vaadin-text-field class="full-width"
+                                               value="{{propValue.value}}"
+                                               pattern="[0-9]*"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -216,7 +360,7 @@ yes
                                                pattern="[0-9]*"
                                                prevent-invalid-input></vaadin-text-field>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!-- Boolean -->
@@ -234,6 +378,28 @@ yes
 
                 <!-- Array -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'array')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <template is="dom-repeat" items="{{propValue.value}}">
+                                <nq-form-digit class="nest"
+                                               prop-value-arr="[[computePropValueItemArr(propValue, item, index)]]"
+                                               edit-mode="[[editMode]]"></nq-form-digit>
+                            </template>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <template is="dom-repeat" items="{{propValue.value}}">
+                                <nq-form-digit class="nest"
+                                               prop-value-arr="[[computePropValueItemArr(propValue, item, index)]]"
+                                               edit-mode="[[editMode]]"></nq-form-digit>
+                            </template>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-repeat" items="{{propValue.value}}">
@@ -241,21 +407,57 @@ yes
                                            prop-value-arr="[[computePropValueItemArr(propValue, item, index)]]"
                                            edit-mode="[[editMode]]"></nq-form-digit>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!-- Object -->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'object')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <nq-form-digit class="nest"
+                                           prop-value-arr="[[computePropValueArr(propValue.attrProps, propValue.value)]]"
+                                           edit-mode="[[editMode]]"></nq-form-digit>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <nq-form-digit class="nest"
+                                           prop-value-arr="[[computePropValueArr(propValue.attrProps, propValue.value)]]"
+                                           edit-mode="[[editMode]]"></nq-form-digit>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <nq-form-digit class="nest"
                                        prop-value-arr="[[computePropValueArr(propValue.attrProps, propValue.value)]]"
                                        edit-mode="[[editMode]]"></nq-form-digit>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
                 <!--Json-->
                 <template is="dom-if" if="[[computeDidgitType(propValue.attrProps,'json')]]">
+                    <template is="dom-if" if="[[computeReadOnlyHasValue(propValue,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <pre class="nest">[[computeJsonString(propValue.value)]]</pre>
+                        </vaadin-form-item>
+                    </template>
+                    <template is="dom-if" if="[[!computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
+                        <vaadin-form-item>
+                            <label slot="label">[[propValue.attrProps.title]]</label>
+                            <vaadin-text-field class="full-width"
+                                               value="{{computeJsonString(propValue.value)}}"
+                                               minlength="[[propValue.minLength]]"
+                                               maxlength="[[propValue.maxLength]]"
+                                               prevent-invalid-input></vaadin-text-field>
+                        </vaadin-form-item>
+                    </template>
+
+                    <!--
                     <vaadin-form-item>
                         <label slot="label">[[propValue.attrProps.title]]</label>
                         <template is="dom-if" if="[[computeReadOnly(propValue.attrProps.readOnly,editMode)]]">
@@ -268,7 +470,7 @@ yes
                                                maxlength="[[propValue.maxLength]]"
                                                prevent-invalid-input></vaadin-text-field>
                         </template>
-                    </vaadin-form-item>
+                    </vaadin-form-item>-->
                 </template>
 
             </template>
@@ -327,7 +529,7 @@ yes
 
 
             computeReadOnly(readOnly, editMode){
-                return !editMode; //HACK
+                //return !editMode; //HACK
                 if(readOnly) return true;
                 return !editMode;
             }
@@ -369,13 +571,17 @@ yes
             computeLengthLessThan(arr, length){
                 return arr.length<length;
             }
+            computeReadOnlyHasValue(propValue, editMode){
+                if((propValue.attrProps.readOnly || !editMode) && propValue.value) return true;
+                return false;
+            }
 
             computeDidgitType(attrProps, type){
                 //console.log('tpye', type, attrProps  );
                 if(attrProps.type === 'string'){
                     if(attrProps.media){
                         if(attrProps.media.mediaType === 'text/html') return type === 'html';
-                        if(attrProps.media.mediaType === 'image/png') return type === 'img';
+                        if(attrProps.media.type === 'image/png') return type === 'img';//TODO should this be mediaType?
                         if(attrProps.media.mediaType === 'image/webgl') return type === 'webGl';
                     }
                     if(attrProps.format){

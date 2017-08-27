@@ -23,7 +23,7 @@
                     path="/documents/[[value]]"
                     data="{{document}}">
             </firebase-document>
-            <div>{{document.name}}</div>
+            <div>[[computeValue(document)]]</div>
         </template>
         <template is="dom-if" if="[[!readOnly]]">
             <firebase-query
@@ -56,16 +56,16 @@
                     },
                     readOnly:{
                         type: Boolean,
-                        value: false,
+                        value: true,
                     },
                     value:{
                         type: String,
                         notify: true,
-                        observer: 'dataChanged'
                     },
                     document:{
                         type:Object,
                         value() { return {}; },
+                        observer: 'dataChanged'
                     },
                     options:{
                         type:Array,
@@ -75,16 +75,23 @@
             }
 
             computeOrderByChild(query) {
-                if(query.from) return 'classId';
-                if(!query || !query.where || !query.where.docProp) return null;
+                if(!query || !query.where || !query.where.docProp) {
+                    if(query.from) {
+                        if(query.from === 'classes') return 'docType';
+                        else return 'classId';
+                    }
+                    else return null;
+                }
                 var value = query.where.docProp;
                 //console.log('computeOrderByChild: ',value);
                 return value;
             }
 
             computeEqualTo(query) {
-                if(query.from) return query.from;
-                if(!query || !query.where || !query.where.value) return null;
+                if(!query || !query.where || !query.where.value) {
+                    if(query.from) return query.from;
+                    else return null;
+                }
                 var value = query.where.value;
                 if(value == '$parent._id') value = this.docId;
                 //console.log('computeEqualTo: ',value);
@@ -103,8 +110,13 @@
                 return arr;
             }
 
+            computeValue(document) {
+                if(!document) return this.value;
+                return document.title?document.title:document.name;
+            }
+
             dataChanged(newVal){
-                //console.log('newVal', newVal);
+                console.log('newVal', newVal);
             }
         }
 
