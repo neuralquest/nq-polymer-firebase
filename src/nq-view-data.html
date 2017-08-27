@@ -36,12 +36,12 @@ view data
                     var viewDoc = snapshot.val();
                     if(viewDoc === null) return;
                     var classId;
-                    if('rootQuery' in viewDoc && 'from' in viewDoc.rootQuery) {
-                        classId = viewDoc.rootQuery.from;
+                    if('query' in viewDoc && 'from' in viewDoc.query) {
+                        classId = viewDoc.query.from;
                     }
-                    else if('query' in viewDoc && 'from' in viewDoc.query[0]) {
+                    else if('join' in viewDoc.query && 'from' in viewDoc.query.join[0]) {
                         //TODO we have to rethink this. what do we do if we have more than one query in the array
-                        classId = viewDoc.query[0].from;
+                        classId = viewDoc.query.join[0].from;
                     }
                     return self.getInheritedClassSchema(classId).then(function(inheritedClassSchema){
                         for(var key in viewDoc.properties){

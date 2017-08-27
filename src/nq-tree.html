@@ -39,8 +39,8 @@ yes
         <nq-tree-node id="root"
                       data="[[data]]"
                       level="[[level]]"
-                      node-query="[[view.rootQuery]]"
-                      children-query="[[view.query]]"
+                      node-query="[[view.query]]"
+                      children-query="[[view.query.join]]"
                       view-query="[[view.query]]"
                       doc-id="[[getDocId(view)]]"
                       view-id="[[viewId]]"></nq-tree-node>
@@ -93,12 +93,11 @@ yes
              * @param {object} view A view object.
              */
             getDocId(view){
-                if(!view || !view.rootQuery || !view.rootQuery.where || !view.rootQuery.where.value) return null;
-                var value = view.rootQuery.where.value;
-                var docId = value;
-                if(value === '$docId') docId = this.docId;
-                if(value === '$parent.initialDocId') return null;//$parent.initialDocId
-                return docId;
+                if(!view || !view.query || !view.query.where || !view.query.where.value) return null;
+                var value = view.query.where.value;
+                if(value === '$docId') return this.docId;
+                if(value === '$parent.initialDocId') return null;
+                return view.query.where.value;
             }
 
         }

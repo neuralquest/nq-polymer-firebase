@@ -140,23 +140,37 @@
             computeEqualTo(subQuery, docId) {
                 if(!docId || !subQuery || !subQuery.where || !subQuery.where.value) return null;
                 var value = subQuery.where.value;
-                if(value == '$parent._id') value = this.docId;
+                if(value == '$parentNode.$key') value = this.docId;
                 //console.log('computeEqualTo: ',value);
                 return value;
             }
             computeChildrenQuery(viewQuery) {
-                //if(this.subQuery.join) [this.subQuery.join];
-                //return viewQuery;
-                if(this.subQuery.recursive){
-                    if(this.subQuery.recursive === 'schemaQuery') return viewQuery;
-                    return this.findChildrenQueryByName(this.subQuery.recursive)
+                if(this.subQuery.join){
+                    if(this.subQuery.join[0].queryByName) {
+                        var queryName = this.subQuery.join[0].queryByName;
+                        if(queryName === 'viewQuery') return this.viewQuery.join;
+                        else{
+                            var foundQuery = this.findQueryByName(this.viewQuery.join, queryName);
+                            if(foundQuery) return [foundQuery];
+                            else return [];
+                        }
+                    }
+                    return this.subQuery.join
                 }
-                return viewQuery;
+                return [];
             }
-            findChildrenQueryByName(queryName){
-                return this.viewQuery.find(function(subQuery){
-                    return(subQuery.queryName === queryName);
-                });
+            findQueryByName(joinArr, queryName){
+                var foundQuery = joinArr.find(function(childQuery){
+                    return (childQuery.queryName === queryName);
+                }.bind(this));
+                if(!foundQuery) {
+                    joinArr.forEach(function(childQuery) {
+                        if (!foundQuery && childQuery.join) {
+                            foundQuery = this.findQueryByName(childQuery.join, queryName);
+                        }
+                    }.bind(this));
+                }
+                return foundQuery;
             }
             childrenLengthChanged(length){
                 //console.log('childrenLengthChanged: ', this.subQuery.queryName, length);
