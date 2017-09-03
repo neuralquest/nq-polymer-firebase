@@ -180,7 +180,7 @@
 
             sortByName(v1, v2) {
                 //TODO use query to determine name/title
-                var val1 = v1.name, val2 = v2.name;
+                var val1 = v1.name?v1.name:v1.title, val2 = v2.name?v2.name:v2.title;
                 if (val1 === val2) return 0;
                 if (val1 > val2) return 1;
                 if (val1 < val2) return -1;

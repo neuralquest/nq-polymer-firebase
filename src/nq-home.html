@@ -3,13 +3,15 @@
 <link rel="import" href="../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<script src="https://aframe.io/releases/0.6.1/aframe.min.js"></script>
 <!--
-`my-blank-element`
-yes
 
-@demo demo/index.html
 -->
+
+<script src="https://aframe.io/releases/0.6.1/aframe.js"></script>
+<script src="https://unpkg.com/aframe-cubemap-component@0.1.2/dist/aframe-cubemap-component.min.js"></script>
+<script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.11.4/dist/aframe-extras.js"></script>
+<script src="https://cdn.rawgit.com/tizzle/aframe-orbit-controls-component/v0.1.12/dist/aframe-orbit-controls-component.min.js"></script>
+
 
 <dom-module id="nq-home">
     <template>
@@ -40,16 +42,51 @@ yes
                 path=""
                 data="{{views}}">
         </firebase-query>
-
+<!--
         <paper-button on-tap="onTap">Query</paper-button>
         <paper-button on-tap="onTap2">compute qury</paper-button>
+            <a-entity id='cameraWrapper' position="0 0 10">
+                <a-camera></a-camera>
+            </a-entity>
+            <a-camera position="0 0 5" height="0"></a-camera>
 
+                  rotateTo: 0.172 4.140 2.797;
+-->
+        <!-- See https://github.com/tizzle/aframe-orbit-controls-component-->
         <a-scene>
-            <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
-            <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
-            <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
-            <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
-            <a-sky color="#ECECEC"></a-sky>
+            <a-assets>
+                <a-asset-item id="robotoFont" src="https://cdn.aframe.io/fonts/mozillavr.png"></a-asset-item>
+            </a-assets>
+
+            <a-entity
+                id="camera"
+                camera
+                position="0 0 15"
+                orbit-controls="
+                  target: #target;
+                  autoRotateSpeed: 0.2;
+                  logPosition: false;
+                  invertZoom: true;
+                  autoRotate: true;"></a-entity>
+
+            <a-entity cubemap="folder: ../images/space_3/; ext:jpg;"></a-entity>
+
+            <a-entity light="type: directional; color: #FFF; intensity: 3" position="-1 1 -1"></a-entity>
+            <a-light type="ambient" color="#EEE" intensity="2"></a-light>
+
+            <a-entity id="target" json-model="src: url(../images/classMesh.json);" position="0 0 0" color="#4CC3D9"></a-entity>
+
+            <a-entity position="0 0 0.62" text="font: https://cdn.aframe.io/fonts/mozillavr.fnt; width: 40; fontImage: https://cdn.aframe.io/fonts/mozillavr.png; value: Via URL."></a-entity>
+            <!--
+                        <a-entity position="0 0 0.62"
+                                  text="font: https://cdn.aframe.io/fonts/Monoid.fnt; width: 40; color: lightgrey; value: South">
+                    </a-entity>
+             <!--
+                        <a-text  font="roboto" width="30" align="center" color="#ddd" opacity="1" value="North" position="0 0 0.62"></a-text>
+                        <a-entity width="400" text="value: Hello World;"></a-entity>
+                        <a-entity axis></a-entity>
+                        <a-entity bmfont-text="text: HELLO!; color: #333"  position="0 0 2.1"></a-entity>
+                        -->
         </a-scene>
 
     </template>

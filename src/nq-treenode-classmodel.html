@@ -1,0 +1,277 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="nq-treenode-subquery.html">
+
+<script src="https://aframe.io/releases/0.6.0/aframe.js"></script>
+<script src="https://unpkg.com/aframe-cubemap-component@0.1.2/dist/aframe-cubemap-component.min.js"></script>
+<script src="//cdn.rawgit.com/donmccurdy/aframe-extras/v3.11.4/dist/aframe-extras.js"></script>
+
+<dom-module id="nq-treesubquery-classmodel">
+    <template>
+
+        <app-location route="{{route}}" use-hash-as-path></app-location>
+
+        <a-entity json-model="src: url(../images/classMesh.json);" position="0 0 0" color="#4CC3D9"></a-entity>
+
+        <template is="dom-repeat" items="{{childrenQuery}}" as="subQuery">
+            <div>
+                <nq-treesubquery-classmodel view-query="[[viewQuery]]"
+                                      sub-query="[[subQuery]]"
+                                      level="[[level]]"
+                                      doc-id="[[docId]]"
+                                      has-children="{{hasChildren}}"
+                                      expanded="[[expanded]]"
+                                      view-id="[[viewId]]"></nq-treesubquery-classmodel>
+            </div>
+        </template>
+
+    </template>
+
+    <script>
+        class NqTreenodeClassmodel extends Polymer.Element {
+            static get is() {
+                return 'nq-treenode-classmodel';
+            }
+
+            static get properties() {
+                return {
+
+                    /**
+                     * Data hold by this node (contains the children).
+                     *
+                     * Specific data:
+                     *
+                     * - `data.name`: string representing the node name.
+                     * - `data.icon`: string telling which icon to use (default to 'folder' icon).
+                     * - `data.open`: boolean telling whether the node is expanded or not.
+                     * - `data.children` array containing the children of the node.
+                     */
+                    data: {
+                        type: Object,
+                        value () {
+                            return {};
+                        },
+                        observer: 'dataChanged'
+                    },
+                    level: {
+                        type: Number
+                    },
+
+                    /**
+                     * The id of the view used in construction for the tree.
+                     * Only used to make the expanded cookie more specific
+                     */
+                    viewId: {
+                        type: "String"
+                    },
+
+                    nodeQuery: {
+                        type: Object,
+                        value () {
+                            return null;
+                        },
+                        observer: 'nodeQueryChanged'
+                    },
+                    childrenQuery: {
+                        type: Array,
+                        value () {
+                            return null;
+                        },
+                        observer: 'childrenQueryChanged'
+                    },
+                    viewQuery: {
+                        type: Array,
+                        value () {
+                            return null;
+                        }
+                    },
+                    hasChildren: {
+                        type: String,
+                        value: 'no',//'loading'
+                        observer: 'hasChildrenChanged'
+                    },
+                    expanded: {
+                        type: Boolean,
+                        value: false,
+                    },
+                    selected: {
+                        type: Boolean,
+                        computed: 'routePathChanged(route.path)'
+                    },
+                    classIcon: {
+                        type: String,
+                    },
+                    docId: {
+                        type: "String"
+                    },
+                    route: String,
+
+                    /**
+                     * `actions` available for this node. Each action object has the following fields:
+                     *
+                     * - `action.label`: string representing the display name of the menu item.
+                     * - `action.event`: string which is the event name to dispatch whenever the item is clicked.
+                     *
+                     */
+                    actions: {
+                        type: Array,
+                        value () {
+                            return [{
+                                "label": "Add Child",
+                                "event": "addChild"
+                            },
+                            {
+                                "label": "Delete",
+                                "event": "delete"
+                            }];
+                        }
+                    }
+                };
+
+            }
+            /**
+             * Called when the route path changes.
+             * Updates the the select state depending whether our docId occurs in the hash.
+             * This will trigger row highlight.
+             *
+             * @path the url hash
+             */
+            routePathChanged(path){
+                var pathArr = path.split('.');
+                var idx = (this.level+1)*4;
+                var docId = pathArr[idx];
+                return (docId === this.docId);
+            }
+
+
+            /**
+             * Returns the necessary classes.
+             *
+             * @param {object} change An object containing the property that changed and its value.
+             * @return {string} The class name indicating whether the node is open or closed
+             */
+            computeClassPreicon(hasChildren, expanded) {
+                if(hasChildren === 'loading')  return 'node-preicon loading';
+                if(hasChildren === 'yes'){
+                    if(expanded) return 'node-preicon expanded';
+                    else return 'node-preicon collapsed';
+                }
+                else return 'node-preicon';
+            }
+            computeClassSelected(selected) {
+                if(selected) return 'node-row selected';
+                else return 'node-row';
+            }
+            /**
+             * Compute the necessary node icon.
+             *
+             * @param {string=folder} an icon name.
+             * @return {string} the computed icon name.
+             */
+            computeIcon(nodeQuery, data, classIcon) {
+                if(classIcon) return classIcon;
+                if(!nodeQuery || !data) return '/images/circle.svg';
+                if(nodeQuery.icon) return nodeQuery.icon;
+                else if(this.data.icon) return this.data.icon;
+                else if(this.data.docType === 'object') {
+                    var database = firebase.database();
+                    // Get the parent class
+                    database.ref('/documents/' + this.data.classId).once('value').then(function (snapshot) {
+                        var parentClass = snapshot.val();
+                        //Trigger computeIcon again, this time there will be a class icon
+                        if(parentClass && parentClass.icon) this.classIcon = parentClass.icon;
+                    }.bind(this));
+                }
+                return '/images/circle.svg';
+            }
+            _computeName(data) {
+                return data.name ? data.name : data.title;
+            }
+            computeOrderByChild(subQuery) {
+                if(!subQuery.where || !subQuery.where.docProp) return null;
+                var value = subQuery.where.docProp;
+                return value;
+            }
+            computeEqualTo(subQuery) {
+                if(!subQuery.where || !subQuery.where.value) return null;
+                var value = subQuery.where.value;
+                if(value == '$parent._id') value = this.docId;
+                return value;
+            }
+            hasChildrenChanged(hasChildren){
+                //console.log('hasChildrenChanged: ', hasChildren);
+            }
+            docIdChanged(newValue, oldValue){
+                //console.log('docIdChanged: ', newValue);
+            }
+            _actionClicked (event) {
+                this.fire(event.model.item.event, this);
+            }
+
+            /**
+             * Highlights node as the selected node.
+             */
+            select(e){
+                var pathArr = this.route.path.split('.');
+                var idx = (this.level+1)*4;
+                pathArr[idx] = this.docId;
+                if(this.nodeQuery.pageId) pathArr[idx+1] = this.nodeQuery.pageId;
+                else if(this.data.pageId) pathArr[idx+1] = this.data.pageId;
+                var pathArr = pathArr.slice(0, idx+2);
+                var newPath = pathArr.join('.');
+                this.set('route.path', newPath);
+            }
+
+            /**
+             * Display/Hide the children nodes.
+             */
+            toggleChildren() {
+                this.expanded = !this.expanded;
+                if(this.docId) {
+                    if(this.expanded) document.cookie = 'tree_' + this.viewId + this.docId + '=true; expires=Fri, 31 Dec 9999 23:59:59 GMT';
+                    else document.cookie = 'tree_' + this.viewId + this.docId + '=true; expires=Thu, 01 Jan 1970 00:00:00 GMT'; //remove cookie
+                }
+            }
+
+            ready() {
+                super.ready();
+                if(this.docId) {
+                    var cookie = document.cookie.match('(^|;)\\s*' + 'tree_' + this.viewId + this.docId + '\\s*=\\s*([^;]+)');
+                    if(cookie && (cookie[2]) === 'true') this.expanded = true;
+                }
+            }
+
+
+            /**
+             * Returns the parent tree node. Returns `null` if root.
+             */
+            getParent () {
+                return this.domHost.tagName === 'NQ-TREE-NODE' ? this.domHost : null;
+            }
+
+            /**
+             * Returns the children tree nodes.
+             */
+            getChildren () {
+                return Polymer.dom(this.root).querySelectorAll('nq-treenode-classmodel');
+            }
+
+
+
+            dataChanged(newValue, oldvalue){
+                //if(!newValue) return;
+                //console.log('dataChanged tree-node', newValue);
+            }
+            childrenQueryChanged(newValue, oldvalue){
+                if(!newValue) return;
+                //console.log('childrenQueryChanged', newValue);
+            }
+            nodeQueryChanged(newValue, oldvalue){
+                if(!newValue) return;
+                //console.log('nodeQueryChanged', newValue);
+            }
+        }
+        window.customElements.define(NqTreenodeClassmodel.is, NqTreenodeClassmodel);
+    </script>
+</dom-module>

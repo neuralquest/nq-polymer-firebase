@@ -1,0 +1,114 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="nq-treenode-classmodel.html">
+
+
+<script src="https://aframe.io/releases/0.6.0/aframe.js"></script>
+<script src="https://unpkg.com/aframe-cubemap-component@0.1.2/dist/aframe-cubemap-component.min.js"></script>
+<script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.11.4/dist/aframe-extras.js"></script>
+<script src="https://cdn.rawgit.com/tizzle/aframe-orbit-controls-component/v0.1.12/dist/aframe-orbit-controls-component.min.js"></script>
+
+<!--
+`my-blank-element`
+yes
+
+@demo demo/index.html
+-->
+
+<dom-module id="nq-treeroot-classmodel">
+    <template>
+        <style>
+            :host {
+                display: block;
+                margin: 0px;
+            }
+
+
+        </style>
+
+        <firebase-document
+                path="/documents/[[viewId]]"
+                data="{{view}}">
+        </firebase-document>
+
+        <firebase-document
+                path="[[computeDocPath(view)]]"
+                data="{{data}}">
+        </firebase-document>
+
+        <a-scene>
+            <a-camera position="0 0 20"></a-camera>
+
+            <a-entity cubemap="folder: ../images/space_3/; ext:jpg;"></a-entity>
+
+            <nq-treenode-classmodel id="root"
+                                    data="[[data]]"
+                                    level="[[level]]"
+                                    node-query="[[view.query]]"
+                                    children-query="[[view.query.join]]"
+                                    view-query="[[view.query]]"
+                                    doc-id="[[getDocId(view)]]"
+                                    view-id="[[viewId]]"></nq-treenode-classmodel>
+
+        </a-scene>
+
+    </template>
+
+
+    <script>
+        class NqTree extends Polymer.Element {
+            static get is() {
+                return 'nq-treeroot-classmodel';
+            }
+
+            static get properties() {
+                return {
+                    /**
+                     * `level` The level in the hash that this page represents.
+                     */
+                    level: Number,
+
+                    /**
+                     * `viewId` Id of the view that this page will display.
+                     */
+                    viewId: String,
+
+                    /**
+                     * `data` is the data passed to `<nq-treenode-classmodel-node>` to serve as a root node.
+                     */
+                    data: {
+                        type: 'Object',
+                        value(){return {'name': 'Loading...'}}
+                    }
+                };
+            }
+
+            /**
+             * Returns path for the document query, only after we have a view.
+             * The path is initially left empty to prevent unnecessary io.
+             *
+             * @param {object} view A view object.
+             */
+            computeDocPath(view){
+                if(Object.keys(view).length === 0) return null;
+                return "/documents/"+this.getDocId(view);
+            }
+
+            /**
+             * Get docId from the root query in the view.
+             *
+             * @param {object} view A view object.
+             */
+            getDocId(view){
+                if(!view || !view.query || !view.query.where || !view.query.where.value) return null;
+                var value = view.query.where.value;
+                if(value === '$docId') return this.docId;
+                if(value === '$parent.initialDocId') return null;
+                return view.query.where.value;
+            }
+
+        }
+        window.customElements.define(NqTree.is, NqTree);
+    </script>
+
+</dom-module>

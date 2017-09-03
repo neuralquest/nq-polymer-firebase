@@ -39,7 +39,7 @@ view data
                     if('query' in viewDoc && 'from' in viewDoc.query) {
                         classId = viewDoc.query.from;
                     }
-                    else if('join' in viewDoc.query && 'from' in viewDoc.query.join[0]) {
+                    else if('query' in viewDoc && 'join' in viewDoc.query && 'from' in viewDoc.query.join[0]) {
                         //TODO we have to rethink this. what do we do if we have more than one query in the array
                         classId = viewDoc.query.join[0].from;
                     }

@@ -1,0 +1,206 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="./nq-treenode-classmodel.html">
+
+
+<dom-module id="nq-treesubquery-classmodel">
+    <template>
+
+        <firebase-query
+                path="/documents"
+                order-by-child="[[computeOrderByChild(subQuery, docId)]]"
+                equal-to="[[computeEqualTo(subQuery, docId)]]"
+                data="{{children}}" >
+        </firebase-query>
+
+        <div hidden$="[[!expanded]]">
+            <template is="dom-repeat" items="[[children]]" sort="sortByName">
+                <template is="dom-if" if="[[expanded]]">
+                    <nq-treenode-classmodel id="root"
+                                  data="[[item]]"
+                                  level="[[level]]"
+                                  node-query="[[subQuery]]"
+                                  children-query="[[computeChildrenQuery(viewQuery)]]"
+                                  view-query="[[viewQuery]]"
+                                  doc-id="[[item.$key]]"
+                                  view-id="[[viewId]]"></nq-treenode-classmodel>
+                </template>
+            </template>
+        </div>
+
+    </template>
+
+    <script>
+        class NqTreesubqueryClassmodel extends Polymer.Element {
+            static get is() {
+                return 'nq-treesubquery-classmodel';
+            }
+
+            static get properties() {
+                return {
+
+                    /**
+                     * The Query that this element will execute. (one of the View Query array)
+                     */
+                    subQuery: {
+                        type: Object,
+                        value () {
+                            return null;
+                        },
+                        observer: 'subQueryChanged'
+                    },
+
+                    /**
+                     * The overall query array we got from the view.
+                     * Used in determining the query for the next level of child nodes
+                     */
+                    viewQuery: {
+                        type: 'Array',
+                        value () {
+                            return [];
+                        },
+                        observer: 'viewQueryChanged'
+                    },
+
+                    /**
+                     * The level we're at in terms of nested pages.
+                     * Use in interpreting the location hash
+                     */
+                    level: {
+                        type: Number
+                    },
+
+                    /**
+                     * The id of the document that this node is displaying.
+                     */
+                    docId: {
+                        type: "String",
+                        value: null,
+                        observer: 'docIdChanged'
+                    },
+
+                    /**
+                     * The id of the view used in construction of the tree.
+                     * Only used to make the expanded cookie more specific
+                     */
+                    viewId: {
+                        type: "String"
+                    },
+
+                    /**
+                     * The children that came about as a result of executing the sub query
+                     */
+                    children: {
+                        type: 'Array',
+                        value: function() {
+                            return [];
+                        },
+                        notify: true
+                        //observer: 'childrenChanged'
+                    },
+
+                    /**
+                     * If the there are children we notify our parent element so it can adjust the pre-icon
+                     */
+                    hasChildren: {
+                        type: "String",
+                        notify: true
+                    },
+
+                    /**
+                     * The parent element tels us if we should be displaying our children
+                     */
+                    expanded: {
+                        type: "Boolean"
+                    }
+                };
+            }
+
+            static get observers() {
+                return [
+                    'childrenLengthChanged(children.length)'
+                ];
+            }
+
+            computeOrderByChild(subQuery, docId) {
+                if(!docId || !subQuery || !subQuery.where || !subQuery.where.docProp) return null;
+                var value = subQuery.where.docProp;
+                //console.log('computeOrderByChild: ',value);
+                return value;
+            }
+
+            computeEqualTo(subQuery, docId) {
+                if(!docId || !subQuery || !subQuery.where || !subQuery.where.value) return null;
+                var value = subQuery.where.value;
+                if(value == '$parentNode.$key') value = this.docId;
+                //console.log('computeEqualTo: ',value);
+                return value;
+            }
+            computeChildrenQuery(viewQuery) {
+                if(this.subQuery.join){
+                    if(this.subQuery.join[0].queryByName) {
+                        var queryName = this.subQuery.join[0].queryByName;
+                        if(queryName === 'viewQuery') return this.viewQuery.join;
+                        else{
+                            var foundQuery = this.findQueryByName(this.viewQuery.join, queryName);
+                            if(foundQuery) return [foundQuery];
+                            else return [];
+                        }
+                    }
+                    return this.subQuery.join
+                }
+                return [];
+            }
+            findQueryByName(joinArr, queryName){
+                var foundQuery = joinArr.find(function(childQuery){
+                    return (childQuery.queryName === queryName);
+                }.bind(this));
+                if(!foundQuery) {
+                    joinArr.forEach(function(childQuery) {
+                        if (!foundQuery && childQuery.join) {
+                            foundQuery = this.findQueryByName(childQuery.join, queryName);
+                        }
+                    }.bind(this));
+                }
+                return foundQuery;
+            }
+            childrenLengthChanged(length){
+                //console.log('childrenLengthChanged: ', this.subQuery.queryName, length);
+                if(length>0) this.hasChildren = 'yes';
+                else if(this.hasChildren === 'loading') this.hasChildren = 'no';
+            }
+
+            sortByName(v1, v2) {
+                //TODO use query to determine name/title
+                var val1 = v1.name?v1.name:v1.title, val2 = v2.name?v2.name:v2.title;
+                if (val1 === val2) return 0;
+                if (val1 > val2) return 1;
+                if (val1 < val2) return -1;
+            }
+
+
+
+
+            docIdChanged(newValue, oldValue){
+                //console.log('docIdChanged: ',  this.subQuery.queryName, newValue);
+            }
+            childrenChanged (newValue, oldData) {
+                //console.log('childrenChanged: ', this.level, newValue);
+                return;
+                if(newValue.length>0) this.hasChildren = 'yes';
+                else if(this.hasChildren === 'loading') this.hasChildren = 'no';
+            }
+            subQueryChanged (newValue, oldData) {
+                //console.log('subQueryChanged: ', this.level, newValue.queryName);
+            }
+            viewQueryChanged (newValue, oldData) {
+                //console.log('viewQueryChanged: ', this.level, newValue);
+            }
+
+        }
+        window.customElements.define(NqTreesubqueryClassmodel.is, NqTreesubqueryClassmodel);
+
+    </script>
+</dom-module>
