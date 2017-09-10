@@ -41,6 +41,6 @@ through easy to use forms. All changes take place instantaneously.
 
 Checkout the [3D Class Model](https://neuralquest-395e9.firebaseapp.com/#.5834c2a4425310133a49f129...56f87bcc5dde184ccfb9fc70.575d4c3f2cf3d6dc3ed8314c.2..575d4c3f2cf3d6dc3ed83159)
 
-##Backend
+## Backend
 Neuralquest currently uses the awesome Google Firebase as a backend but we
 are very interested in what happening at [EOS.io](https://eos.io) 
