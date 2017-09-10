@@ -181,8 +181,10 @@
                 // Ths will trigger the route.path observer
                 var pathArr = this.route.path.split('.');
                 var idx = (this.level+1)*4;
+                var prevIdx = (this.level)*4;
+                pathArr[prevIdx] = key;
                 pathArr[idx] = key;
-                var pathArr = pathArr.slice(0, idx+2);
+                //var pathArr = pathArr.slice(0, idx+2);
                 var newPath = pathArr.join('.');
                 this.set('route.path', newPath);
             }

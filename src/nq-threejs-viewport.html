@@ -428,6 +428,10 @@
                 if(!this.rootObject3D) return;
                 var pathArr = path.split('.');
                 var idx = (this.level+1)*4;
+
+                var prevIdx = (this.level)*4;
+                pathArr[idx] = pathArr[prevIdx];
+
                 var key = pathArr[idx];
                 if(key) {
                     this.rootObject3D.selectByKey(key);
